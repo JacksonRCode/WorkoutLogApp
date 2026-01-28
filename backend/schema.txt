@@ -1,0 +1,44 @@
+Db Schema:
+Naming Conventions: "snake_case", "plurals"
+'' --> Primary Key
+** --> Foreign Key
+~~ --> Not required
+
+Entities & Attributes: 
+--------------------------------------------------------------------------------------------------------------
+1. users: 'user_id', f_name, l_name, email, ~phone~, password_hash, ~DOB~, date_joined
+
+2. programs: 'program_id', *user_id*, name, date_created, notes
+
+3. workouts: 'workout_id', *user_id*, *program_id*, name, notes 
+    - Has u_id for tracking non-program workouts 
+
+4. exercises: 'exercise_id', *user_id=NULL*, name, muscle_group
+
+5. workout_exercises: *workout_id*, *exercise_id*, order_index, target_sets, target_reps, rest, time_flag, distance, notes
+
+6. workout_completed: 'workout_completed_id', *user_id*, *workout_id*, start_time, end_time, date, notes
+
+7. completed_exercises: 'completed_exercise_id', *user_id*, *exercise_id*, *workout_completed_id*, sets, reps, time_flag, notes  
+    - Has u_id for tracking standalone exercises 
+
+8. completed_sets: 'completed_set_id', *completed_exercise_id*, weight, reps, rpe, set_number
+
+9. user_exercise_stats: *user_id*, *exercise_id*, calculated_max, date_last_hit, all_time_best
+--------------------------------------------------------------------------------------------------------------
+
+Relationships:
+--------------------------------------------------------------------------------------------------------------
+1. users --> programs
+2. users --> workouts
+3. users --> completed_exercises
+4. users --> exercises (base=NULL)
+5. programs --> workouts
+6. workouts --> workout_completed
+7. exercises --> completed_exercises
+8. workout_completed --> completed_exercises
+9. completed_exercises --> completed_sets
+
+Combos:
+1. users + exercises --> user_exercise_stats (Weak)
+2. workouts + exercises --> workout_exercises (Weak)

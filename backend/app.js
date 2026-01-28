@@ -1,8 +1,12 @@
 const express = require("express");
 const app = express();
+const PORT = 3000;
 
-console.log(app);
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
-app.listen(8080, () => {
-  console.log("Server listening on port 8080");
+// .listen starts the server
+app.listen(PORT, () => {
+  console.log(`Server listening at http://localhost:${PORT}`);
 });
