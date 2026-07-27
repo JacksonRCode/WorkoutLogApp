@@ -1,7 +1,7 @@
 // routes/userRouter.js
 const { Router } = require("express");
-const { validateRequest } = require("../middleware/validateRequest")
-const { signupSchema } = require("../validation/userSchemas")
+const { validateRequest } = require("../middleware/validateRequest");
+const { signupSchema, loginSchema } = require("../validation/userSchemas");
 
 const userRouter = Router();
 const {
@@ -11,7 +11,7 @@ const {
 } = require("../controllers/userController.js");
 const { protect } = require("../middleware/authMiddleware.js");
 
-userRouter.post("/login", loginUser);
+userRouter.post("/login", validateRequest(loginSchema), loginUser);
 userRouter.post("/signup", validateRequest(signupSchema), signupUser);
 userRouter.get("/me", protect, getMe);
 

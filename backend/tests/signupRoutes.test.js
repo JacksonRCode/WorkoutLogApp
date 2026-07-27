@@ -98,26 +98,26 @@ it("returns 400 status and missing first name response", async () => {
     f_name: "",
     l_name: "LName",
     email: "valid@email.com",
-    password: "FakePassword"
-  })
+    password: "FakePassword",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "f_name",
     message: "First name is required",
-  })
+  });
 });
-it("returns 400 status and missing first name response for whitespace last name", async () => {
+it("returns 400 status and missing first name response for whitespace first name", async () => {
   const response = await request(app).post("/api/user/signup").send({
     f_name: " ",
     l_name: "LName",
     email: "valid@email.com",
-    password: "FakePassword"
-  })
+    password: "FakePassword",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "f_name",
     message: "First name is required",
-  })
+  });
 });
 // last name
 it("returns 400 status and missing last name response", async () => {
@@ -125,53 +125,53 @@ it("returns 400 status and missing last name response", async () => {
     f_name: "FName",
     l_name: "",
     email: "valid@email.com",
-    password: "FakePassword"
-  })
+    password: "FakePassword",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "l_name",
     message: "Last name is required",
-  })
+  });
 });
-it("returns 400 status and missing last name response for whitespace email", async () => {
+it("returns 400 status and missing last name response for whitespace last name", async () => {
   const response = await request(app).post("/api/user/signup").send({
     f_name: "FName",
     l_name: " ",
     email: "valid@email.com",
-    password: "FakePassword"
-  })
+    password: "FakePassword",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "l_name",
     message: "Last name is required",
-  })
+  });
 });
 // email
-it("returns 400 status and invalid email resposne", async () => {
+it("returns 400 status and invalid email response", async () => {
   const response = await request(app).post("/api/user/signup").send({
     f_name: "Faulty",
     l_name: "Email",
     email: "faultyEmail",
-    password: "FakePassword"
-  })
+    password: "FakePassword",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "email",
     message: "Email must be valid",
-  })
+  });
 });
 it("returns 400 status and missing email resposne", async () => {
   const response = await request(app).post("/api/user/signup").send({
     f_name: "Faulty",
     l_name: "Email",
     email: "",
-    password: "FakePassword"
-  })
+    password: "FakePassword",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "email",
     message: "Email must be valid",
-  })
+  });
 });
 // password
 it("returns 400 status and short password response", async () => {
@@ -179,27 +179,28 @@ it("returns 400 status and short password response", async () => {
     f_name: "Valid",
     l_name: "LastName",
     email: "valid@email.com",
-    password: "Short"
-  })
+    password: "Short",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "password",
     message: "Password must be at least 8 characters",
-  })
-})
+  });
+});
 it("returns 400 status and long password response", async () => {
   const response = await request(app).post("/api/user/signup").send({
     f_name: "Valid",
     l_name: "LastName",
     email: "valid@email.com",
-    password: "LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong"
-  })
+    password:
+      "LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong",
+  });
   expect(response.status).toBe(400);
   expect(response.body.errors).toContainEqual({
     field: "password",
     message: "Password must not exceed 64 characters",
-  })
-})
+  });
+});
 //Multiple field test
 it("returns all signup validation errors", async () => {
   const response = await request(app).post("/api/user/signup").send({
@@ -213,13 +214,13 @@ it("returns all signup validation errors", async () => {
   expect(response.body.message).toBe("Validation failed");
   expect(response.body.errors).toEqual(
     expect.arrayContaining([
-      { field: "f_name", message: "First name is required"},
-      { field: "l_name", message: "Last name is required"},
-      { field: "email", message: "Email must be valid"},
-      { field: "password", message: "Password must be at least 8 characters"},
-    ])
-  )
-})
+      { field: "f_name", message: "First name is required" },
+      { field: "l_name", message: "Last name is required" },
+      { field: "email", message: "Email must be valid" },
+      { field: "password", message: "Password must be at least 8 characters" },
+    ]),
+  );
+});
 // Missing field test
 it("returns 400 status and validation failure when field is missing", async () => {
   const response = await request(app).post("/api/user/signup").send({
@@ -234,10 +235,10 @@ it("returns 400 status and validation failure when field is missing", async () =
     expect.arrayContaining([
       expect.objectContaining({
         field: "f_name",
-      })
-    ])
-  )
-})
+      }),
+    ]),
+  );
+});
 afterAll(async () => {
-  endTesting();
+  await endTesting();
 });
