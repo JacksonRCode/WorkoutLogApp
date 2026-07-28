@@ -109,7 +109,6 @@ const compileWorkout = async (user_id, workouts, client) => {
         client,
       );
       workout_ids.push(w_shell.workout_id);
-      console.log("Workout ids: ", workout_ids);
 
       await linkWorkoutExercises(
         user_id,

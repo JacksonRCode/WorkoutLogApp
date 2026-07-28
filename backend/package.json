@@ -16,7 +16,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "NODE_ENV=development nodemon server.js",
-    "test": "NODE_ENV=test jest",
+    "test": "NODE_ENV=test jest --runInBand",
     "test:watch": "NODE_ENV=test jest --watch",
     "test:verbose": "NODE_ENV=test jest --runInBand --verbose",
     "start": "NODE_ENV=production node server.js"

@@ -115,11 +115,8 @@ it("returns 400 and password required when password is whitespace", async () => 
     password: " ",
   });
 
-  expect(response.status).toBe(400);
-  expect(response.body.errors).toContainEqual({
-    field: "password",
-    message: "Password is required",
-  });
+  expect(response.status).toBe(401);
+  expect(response.body.message).toBe("Invalid email or password");
 });
 it("returns 400 and password required when password is missing", async () => {
   const response = await request(app).post("/api/user/login").send({

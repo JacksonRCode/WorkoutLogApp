@@ -231,13 +231,10 @@ it("returns 400 status and validation failure when field is missing", async () =
 
   expect(response.status).toBe(400);
   expect(response.body.message).toBe("Validation failed");
-  expect(response.body.errors).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        field: "f_name",
-      }),
-    ]),
-  );
+  expect(response.body.errors).toContainEqual({
+    field: "f_name",
+    message: "First name is required",
+  });
 });
 afterAll(async () => {
   await endTesting();

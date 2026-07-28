@@ -39,6 +39,12 @@ it("returns status code 201 on successful program creation", async () => {
     target_reps: 8,
     target_rest: 90,
   };
+  const exercise2 = {
+    name: "Pull ups",
+    target_sets: 3,
+    target_reps: 8,
+    target_rest: 90,
+  };
   const exercise3 = {
     name: "Squat",
     target_sets: 3,
@@ -56,7 +62,7 @@ it("returns status code 201 on successful program creation", async () => {
   const workout2 = {
     name: "Test Workout2",
     notes: "Test workout notes",
-    exercises: [],
+    exercises: [exercise2],
   };
   const workout3 = {
     name: "Test Workout2",
@@ -219,14 +225,6 @@ it("returns status code 200 when exercises successfully retrieved", async () => 
     .set("Authorization", `Bearer ${token}`);
   expect(response.status).toBe(200);
   expect(response.body.message).toBe("Exercises successfully retrieved");
-});
-it("returns status code 200 when no exercises are found", async () => {
-  const token = await getToken();
-  const response = await request(app)
-    .get(`/api/programs/${2}/workouts/${3}`)
-    .set("Authorization", `Bearer ${token}`);
-  expect(response.status).toBe(200);
-  expect(response.body.message).toBe("No exercises found for this workout");
 });
 it("returns 404 when program doesn't belong to user", async () => {
   const token = await getToken();
