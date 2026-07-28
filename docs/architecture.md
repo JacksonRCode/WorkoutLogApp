@@ -46,7 +46,7 @@ Request
 Router
   |
   v
-Auth / Validation Middleware
+Auth / Zod Request Validation
   |
   v
 Controller
