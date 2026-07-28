@@ -52,6 +52,7 @@ Technical:
 - Centralized Express error handling with custom error classes
 - Jest and Supertest integration testing
 - Separate development and test database configuration
+- Zod request validation with reusable middleware
 
 ---
 
@@ -74,9 +75,14 @@ Authentication
 
 - JWT
 
+Validation
+
+- Zod
+
 Testing
 
 - Jest
+- Supertest
 
 Development
 
