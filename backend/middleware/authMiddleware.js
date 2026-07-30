@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config");
-const UnauthorizedError = require("../errors/UnauthorizedError");
+import { UnauthorizedError } from "../errors/UnauthorizedError";
 
 const protect = (req, res, next) => {
   let token;

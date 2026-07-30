@@ -1,9 +1,9 @@
 //controllers/programController.js
 const pool = require("../db/poolConnection.js");
-const BadRequestError = require("../errors/BadRequestError");
-const ConflictError = require("../errors/ConflictError");
-const NotFoundError = require("../errors/NotFoundError");
-const UnauthorizedError = require("../errors/UnauthorizedError");
+import { BadRequestError } from "../errors/BadRequestError";
+import { ConflictError } from "../errors/ConflictError";
+import { NotFoundError } from "../errors/NotFoundError";
+import { UnauthorizedError } from "../errors/UnauthorizedError";
 
 const {
   createProgram,

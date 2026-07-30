@@ -1,10 +1,10 @@
 // 404 - Requested resource does not exist / was not found
-const { AppError } = require("./AppError");
+import { AppError } from "./AppError";
 
 class NotFoundError extends AppError {
-  constructor(message = "Resource not found") {
+  constructor(message: string = "Resource not found") {
     super(message, 404);
   }
 }
 
-module.exports = NotFoundError;
+export { NotFoundError };

@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const apiRouter = require("./routes/apiRouter");
 const handleError = require("./middleware/errorMiddleware");
-const NotFoundError = require("./errors/NotFoundError");
+import { NotFoundError } from "./errors/NotFoundError";
 const config = require("./config");
 
 const app = express();

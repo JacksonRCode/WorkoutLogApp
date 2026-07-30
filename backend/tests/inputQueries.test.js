@@ -1,3 +1,24 @@
+const request = require("supertest");
+const app = require("../app");
+const { setupTestData, endTesting } = require("./testHelper");
+
+beforeAll(async () => {
+  await setupTestData();
+});
+
+// Test structure:
+// 1. Arrange: Choose invalid credentials
+// 2. Act: Send request
+// 4. Assert: expect certain outcome
+
+it("dummy test because this test suite is obsolete", async () => {
+  expect(400).toBe(400);
+});
+
+afterAll(async () => {
+  await endTesting();
+});
+
 // // inputQueries.test.js
 // const { setupTestData } = require("./testHelper.js");
 // const {

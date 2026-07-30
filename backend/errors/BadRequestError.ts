@@ -1,10 +1,10 @@
 // 400 - Request is malformed or missing required input
-const { AppError } = require("./AppError");
+import { AppError } from "./AppError";
 
 class BadRequestError extends AppError {
-  constructor(message = "Bad request") {
+  constructor(message: string = "Bad request") {
     super(message, 400);
   }
 }
 
-module.exports = BadRequestError;
+export { BadRequestError };
