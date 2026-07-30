@@ -1,4 +1,4 @@
-const { z } = require("zod");
+import { z } from "zod";
 
 const linkedExerciseSchema = z.object({
   name: z
@@ -80,4 +80,10 @@ const programSchema = z.object({
     .default([]),
 });
 
-module.exports = { programSchema, workoutSchema, linkedExerciseSchema };
+type ValidatedLinkedExercise = z.infer<typeof linkedExerciseSchema>;
+type ValidatedWorkout = z.infer<typeof workoutSchema>;
+type ValidatedProgram = z.infer<typeof programSchema>;
+
+export { programSchema, workoutSchema, linkedExerciseSchema };
+
+export type { ValidatedLinkedExercise, ValidatedWorkout, ValidatedProgram };

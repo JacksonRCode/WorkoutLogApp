@@ -1,4 +1,4 @@
-const { z } = require("zod");
+import { z } from "zod";
 
 const signupSchema = z.object({
   f_name: z
@@ -67,4 +67,8 @@ const loginSchema = z.object({
     .min(1, "Password is required"),
 });
 
-module.exports = { signupSchema, loginSchema };
+type ValidatedLoginBody = z.infer<typeof loginSchema>;
+type ValidatedSignupBody = z.infer<typeof signupSchema>;
+
+export { signupSchema, loginSchema };
+export type { ValidatedLoginBody, ValidatedSignupBody };
