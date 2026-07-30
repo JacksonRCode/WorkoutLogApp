@@ -1,7 +1,9 @@
 // Holds shared info like message and statusCode
 
 class AppError extends Error {
-  constructor(msg, statusCode) {
+  readonly statusCode: number;
+
+  constructor(msg: string, statusCode: number) {
     super(msg);
     this.name = this.constructor.name;
     this.statusCode = statusCode;
@@ -9,4 +11,4 @@ class AppError extends Error {
   }
 }
 
-module.exports = AppError;
+export { AppError };

@@ -1,4 +1,4 @@
-const AppError = require("../errors/AppError");
+const { AppError } = require("../errors/AppError");
 
 const handleError = (err, req, res, next) => {
   if (err instanceof AppError) {

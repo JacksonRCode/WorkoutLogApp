@@ -1,5 +1,5 @@
 // 409 - Request conflicts with existing state
-const AppError = require("./AppError");
+const { AppError } = require("./AppError");
 
 class ConflictError extends AppError {
   constructor(message = "Conflict with existing state") {

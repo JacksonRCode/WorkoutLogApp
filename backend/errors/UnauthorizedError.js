@@ -1,6 +1,5 @@
 // 401 - Invalid email or password --> unauthorized
-
-const AppError = require("./AppError");
+const { AppError } = require("./AppError");
 
 class UnauthorizedError extends AppError {
   constructor(message = "Unauthorized resource") {
