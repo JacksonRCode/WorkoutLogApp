@@ -82,8 +82,7 @@ const programSchema = z.object({
 
 type ValidatedLinkedExercise = z.infer<typeof linkedExerciseSchema>;
 type ValidatedWorkout = z.infer<typeof workoutSchema>;
-type ValidatedProgram = z.infer<typeof programSchema>;
+type ValidatedProgramBody = z.infer<typeof programSchema>;
 
 export { programSchema, workoutSchema, linkedExerciseSchema };
-
-export type { ValidatedLinkedExercise, ValidatedWorkout, ValidatedProgram };
+export type { ValidatedLinkedExercise, ValidatedWorkout, ValidatedProgramBody };

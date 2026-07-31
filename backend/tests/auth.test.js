@@ -1,4 +1,6 @@
 const request = require("supertest");
+const jwt = require("jsonwebtoken");
+const config = require("../config");
 const app = require("../app");
 const { setupTestData, endTesting } = require("./testHelper");
 
@@ -29,6 +31,18 @@ it("returns 401 status when a bad token is provided", async () => {
   const response = await request(app)
     .get("/api/programs/")
     .set("Authorization", `Bearer fake-token`);
+  expect(response.status).toBe(401);
+  expect(response.body.message).toBe("Not authorized, token failed");
+});
+it("returns 401 status when a good secret lacking a numeric user_id is provided", async () => {
+  const token = jwt.sign({ role: "user" }, config.auth.jwtSecret, {
+    expiresIn: config.auth.jwtExpiresIn,
+  });
+
+  const response = await request(app)
+    .get("/api/programs/")
+    .set("Authorization", `Bearer ${token}`);
+
   expect(response.status).toBe(401);
   expect(response.body.message).toBe("Not authorized, token failed");
 });

@@ -1,5 +1,6 @@
 // routes/userRouter.js
 const { Router } = require("express");
+import { protect } from "../middleware/authMiddleware";
 const { validateRequest } = require("../middleware/validateRequest");
 const { signupSchema, loginSchema } = require("../validation/userSchemas");
 
@@ -9,7 +10,6 @@ const {
   signupUser,
   getMe,
 } = require("../controllers/userController.js");
-const { protect } = require("../middleware/authMiddleware.js");
 
 userRouter.post("/login", validateRequest(loginSchema), loginUser);
 userRouter.post("/signup", validateRequest(signupSchema), signupUser);
