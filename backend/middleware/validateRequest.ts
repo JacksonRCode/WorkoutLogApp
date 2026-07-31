@@ -1,6 +1,8 @@
-const { ValidationError } = require("../errors/ValidationError");
+import { z } from "zod";
+import type { RequestHandler } from "express";
+import { ValidationError } from "../errors/ValidationError";
 
-const validateRequest = (schema) => {
+function validateRequest<Type extends z.Schema>(schema: Type): RequestHandler {
   return (req, res, next) => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
@@ -15,6 +17,6 @@ const validateRequest = (schema) => {
     req.body = result.data;
     return next();
   };
-};
+}
 
-module.exports = { validateRequest };
+export { validateRequest };

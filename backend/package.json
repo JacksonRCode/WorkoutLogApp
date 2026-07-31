@@ -1,16 +1,16 @@
 {
-  "name": "workoutlogapp",
+  "name": "WorkoutLogApp",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/JacksonRCode/WorkoutLogApp#readme",
+  "homepage": "https://github.com/jackdareid/WorkoutLogApp#readme",
   "bugs": {
-    "url": "https://github.com/JacksonRCode/WorkoutLogApp/issues"
+    "url": "https://github.com/jackdareid/WorkoutLogApp/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JacksonRCode/WorkoutLogApp.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "Jackson Reid <jackdareid@gmail.com>",
   "type": "commonjs",
   "main": "app.js",
