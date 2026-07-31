@@ -4,7 +4,7 @@ const cors = require("cors");
 const apiRouter = require("./routes/apiRouter");
 import { handleError } from "./middleware/errorMiddleware";
 import { NotFoundError } from "./errors/NotFoundError";
-const config = require("./config");
+import { config } from "./config";
 
 const app = express();
 

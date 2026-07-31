@@ -1,7 +1,7 @@
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const app = require("../app");
-const config = require("../config");
+import { config } from "../config";
 const { setupTestData, endTesting } = require("./testHelper");
 
 beforeAll(async () => {

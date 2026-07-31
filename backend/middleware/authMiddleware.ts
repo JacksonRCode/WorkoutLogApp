@@ -1,6 +1,6 @@
 import { type RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-const config = require("../config");
+import { config } from "../config";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 
 const protect: RequestHandler = (req, _res, next) => {

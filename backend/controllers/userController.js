@@ -4,7 +4,7 @@ import { NotFoundError } from "../errors/NotFoundError";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const config = require("../config/index.js");
+import { config } from "../config";
 const {
   getLoginInfo,
   getUserById,
