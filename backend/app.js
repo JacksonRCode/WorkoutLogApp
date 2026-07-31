@@ -2,7 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const apiRouter = require("./routes/apiRouter");
-const handleError = require("./middleware/errorMiddleware");
+import { handleError } from "./middleware/errorMiddleware";
 import { NotFoundError } from "./errors/NotFoundError";
 const config = require("./config");
 

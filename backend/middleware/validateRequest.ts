@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { RequestHandler } from "express";
+import { type RequestHandler } from "express";
 import { ValidationError } from "../errors/ValidationError";
 
 function validateRequest<Type extends z.Schema>(schema: Type): RequestHandler {
