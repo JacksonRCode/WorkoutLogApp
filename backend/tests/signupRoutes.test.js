@@ -1,6 +1,6 @@
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
-const app = require("../app");
+import { app } from "../app";
 import { config } from "../config";
 const { setupTestData, endTesting } = require("./testHelper");
 

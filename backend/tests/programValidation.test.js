@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../app");
+import { app } from "../app";
 const { setupTestData, endTesting } = require("./testHelper");
 
 const PATH = "/api/programs/create";

@@ -1,7 +1,6 @@
-// app.js
-const express = require("express");
-const cors = require("cors");
-const apiRouter = require("./routes/apiRouter");
+import express from "express";
+import cors from "cors";
+import apiRouter from "./routes/apiRouter";
 import { handleError } from "./middleware/errorMiddleware";
 import { NotFoundError } from "./errors/NotFoundError";
 import { config } from "./config";
@@ -10,7 +9,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.json({
     status: "ok",
     service: "WorkoutLogApp API",
@@ -20,10 +19,10 @@ app.get("/", (req, res) => {
 });
 app.use("/api", apiRouter);
 
-app.use((_, next) => {
+app.use((_req, _res, next) => {
   next(new NotFoundError("Route not found"));
 });
 
 app.use(handleError);
 
-module.exports = app;
+export { app };
