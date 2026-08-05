@@ -24,15 +24,15 @@ type CreateCompletedExerciseInput = {
 type CreateWorkoutExerciseInput = {
   workout_id: number;
   exercise_id: number;
-  order_index: number | null;
-  target_sets: number | null;
-  target_reps: number | null;
+  order_index: number;
+  target_sets?: number | null;
+  target_reps?: number | null;
   target_weight: number | null;
   target_duration: number | null;
-  rest?: number | null;
-  time_flag?: boolean | null;
-  distance?: number | null;
-  notes?: string | null;
+  rest?: number;
+  time_flag?: boolean;
+  distance?: number;
+  notes?: string;
 };
 
 /**

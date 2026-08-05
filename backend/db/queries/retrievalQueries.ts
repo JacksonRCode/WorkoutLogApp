@@ -262,7 +262,7 @@ const getExerciseById = async (
  */
 const getExerciseByName = async (
   name: string,
-  client: PoolClient | undefined,
+  client?: PoolClient,
 ): Promise<ExerciseRow | undefined> => {
   const sql = `
     SELECT * FROM exercises 
