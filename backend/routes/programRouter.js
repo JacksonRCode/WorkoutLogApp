@@ -1,6 +1,6 @@
 //routes/programRouter.js
 const { Router } = require("express");
-const { protect } = require("../middleware/authMiddleware");
+import { protect } from "../middleware/authMiddleware";
 const { validateRequest } = require("../middleware/validateRequest");
 const { programSchema } = require("../validation/programSchemas");
 const {

@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const pool = require("../db/poolConnection.js");
+import { pool } from "../db/poolConnection";
 
 const endTesting = async () => {
   await pool.end();

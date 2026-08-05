@@ -5,11 +5,8 @@ import { UnauthorizedError } from "../errors/UnauthorizedError";
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 import { config } from "../config";
-const {
-  getLoginInfo,
-  getUserById,
-} = require("../db/queries/retrievalQueries.js");
-const { createUser } = require("../db/queries/inputQueries.js");
+import { getLoginInfo, getUserById } from "../db/queries/retrievalQueries";
+import { createUser } from "../db/queries/inputQueries";
 
 const SALT_ROUNDS = 10;
 

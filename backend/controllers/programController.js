@@ -1,26 +1,23 @@
 //controllers/programController.js
-const pool = require("../db/poolConnection.js");
+import { pool } from "../db/poolConnection";
 import { BadRequestError } from "../errors/BadRequestError";
 import { ConflictError } from "../errors/ConflictError";
 import { NotFoundError } from "../errors/NotFoundError";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 
-const {
-  createProgram,
-  addProgramWorkout,
-} = require("../db/queries/inputQueries.js");
-const {
+import { createProgram, addProgramWorkout } from "../db/queries/inputQueries";
+import {
   getPrograms,
   getProgramWorkouts,
   getWorkoutExercises,
   workoutExistsForProgram,
   programExistsForUser,
-} = require("../db/queries/retrievalQueries.js");
-const {
+} from "../db/queries/retrievalQueries";
+import {
   deleteProgram,
   removeProgramWorkout,
-} = require("../db/queries/deleteQueries.js");
-const compileWorkout = require("../controllers/workoutController.js");
+} from "../db/queries/deleteQueries";
+const compileWorkout = require("../controllers/workoutController");
 
 const retrievePrograms = async (req, res, next) => {
   const user_id = req.user_id;

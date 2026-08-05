@@ -1,14 +1,14 @@
 // controllers/workoutController.js
-const {
+import {
   createWorkout,
   createUserExercise,
   createWorkoutExercises,
-} = require("../db/queries/inputQueries.js");
+} from "../db/queries/inputQueries";
 
-const {
+import {
   getExerciseById,
   getExerciseByName,
-} = require("../db/queries/retrievalQueries.js");
+} from "../db/queries/retrievalQueries";
 
 /**
  * This function creates a custom user exercise if the user enters an exercise
@@ -84,8 +84,8 @@ const linkWorkoutExercises = async (user_id, w_id, exercises, client) => {
           target_reps,
           target_weight: 0,
           target_duration: 0,
-          target_rest,
-          time_f: false,
+          rest: target_rest,
+          time_flag: false,
           distance: 0,
           notes: "None",
         },

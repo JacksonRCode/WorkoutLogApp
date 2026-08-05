@@ -1,8 +1,8 @@
 import { config } from "../config";
-const { Pool, types } = require("pg");
+import { Pool, types } from "pg";
 
 /*
- * PSQL interprets NUMERIC types as strings.
+ * node-postgres returns PostgreSQL NUMERIC values as strings.
  * 1700 is the Object identifier (OID) for PSQL's NUMERIC type.
  * This is converting all NUMERIC types from strings to floats (unless null).
  */
@@ -19,4 +19,4 @@ const pool = new Pool({
   port: config.database.port,
 });
 
-module.exports = pool;
+export { pool };
