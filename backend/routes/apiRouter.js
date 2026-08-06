@@ -1,13 +1,10 @@
-// apiRouter.js
 const express = require("express");
 const root = express.Router();
 
-// Import routing files here
 const userRouter = require("./userRouter.js");
 const programRouter = require("./programRouter.js");
 const workoutRouter = require("./workoutRouter.js");
 
-// Routes
 root.use("/user", userRouter);
 root.use("/programs", programRouter);
 root.use("/workouts", workoutRouter);

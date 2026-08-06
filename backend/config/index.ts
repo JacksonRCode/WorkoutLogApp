@@ -1,6 +1,7 @@
 import path from "path";
 import dotenv from "dotenv";
 
+type JwtExpiration = `${number}${"s" | "m" | "h" | "d"}`;
 type Environment = "development" | "test" | "production";
 type AppConfig = {
   readonly env: Environment;
@@ -17,7 +18,7 @@ type AppConfig = {
   };
   readonly auth: {
     readonly jwtSecret: string;
-    readonly jwtExpiresIn: string;
+    readonly jwtExpiresIn: JwtExpiration;
   };
   readonly client: {
     readonly url: string;
@@ -59,6 +60,17 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
+function validateJwtExp(jwtExp: string | undefined) {
+  const value = jwtExp ?? "24h";
+
+  const re = /^[1-9]\d*[smhd]$/;
+  if (!re.test(value)) {
+    throw new Error(`Invalid JWT expiration value: ${value}`);
+  }
+
+  return value as JwtExpiration;
+}
+
 // Create config object
 const config: AppConfig = {
   env,
@@ -75,7 +87,7 @@ const config: AppConfig = {
   },
   auth: {
     jwtSecret: getRequiredEnv("JWT_SECRET"),
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN || "24h",
+    jwtExpiresIn: validateJwtExp(process.env.JWT_EXPIRES_IN),
   },
   client: {
     url: process.env.CLIENT_URL || "http://localhost:5173",

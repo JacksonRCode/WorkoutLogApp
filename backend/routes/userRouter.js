@@ -1,15 +1,10 @@
-// routes/userRouter.js
 const { Router } = require("express");
 import { protect } from "../middleware/authMiddleware";
-const { validateRequest } = require("../middleware/validateRequest");
-const { signupSchema, loginSchema } = require("../validation/userSchemas");
+import { validateRequest } from "../middleware/validateRequest";
+import { signupSchema, loginSchema } from "../validation/userSchemas";
+import { loginUser, signupUser, getMe } from "../controllers/userController";
 
 const userRouter = Router();
-const {
-  loginUser,
-  signupUser,
-  getMe,
-} = require("../controllers/userController.js");
 
 userRouter.post("/login", validateRequest(loginSchema), loginUser);
 userRouter.post("/signup", validateRequest(signupSchema), signupUser);

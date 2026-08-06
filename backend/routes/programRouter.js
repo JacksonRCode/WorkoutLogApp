@@ -1,16 +1,15 @@
-//routes/programRouter.js
 const { Router } = require("express");
 import { protect } from "../middleware/authMiddleware";
 const { validateRequest } = require("../middleware/validateRequest");
 const { programSchema } = require("../validation/programSchemas");
-const {
+import {
   removeWorkout,
   getWorkouts,
   getExercises,
   retrievePrograms,
   makeProgram,
   removeProgram,
-} = require("../controllers/programController.js");
+} from "../controllers/programController";
 
 const programRouter = Router();
 programRouter.use(protect);
