@@ -1,4 +1,4 @@
-const { Router } = require("express");
+import { Router } from "express";
 import { protect } from "../middleware/authMiddleware";
 import { validateRequest } from "../middleware/validateRequest";
 import { signupSchema, loginSchema } from "../validation/userSchemas";
@@ -10,4 +10,4 @@ userRouter.post("/login", validateRequest(loginSchema), loginUser);
 userRouter.post("/signup", validateRequest(signupSchema), signupUser);
 userRouter.get("/me", protect, getMe);
 
-module.exports = userRouter;
+export default userRouter;

@@ -1,7 +1,7 @@
-const { Router } = require("express");
+import { Router } from "express";
 import { protect } from "../middleware/authMiddleware";
-const { validateRequest } = require("../middleware/validateRequest");
-const { programSchema } = require("../validation/programSchemas");
+import { validateRequest } from "../middleware/validateRequest";
+import { programSchema } from "../validation/programSchemas";
 import {
   removeWorkout,
   getWorkouts,
@@ -12,6 +12,7 @@ import {
 } from "../controllers/programController";
 
 const programRouter = Router();
+
 programRouter.use(protect);
 
 programRouter.get("/", retrievePrograms);
@@ -22,4 +23,4 @@ programRouter.get("/:id/workouts/:workout_id", getExercises);
 // programRouter.post("/:id/workouts", addWorkout);
 programRouter.delete("/:id/workouts/:workout_id", removeWorkout);
 
-module.exports = programRouter;
+export default programRouter;
