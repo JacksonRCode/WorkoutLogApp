@@ -1,15 +1,10 @@
-const request = require("supertest");
+import request from "supertest";
 import { app } from "../app";
-const { setupTestData, endTesting } = require("./testHelper");
+import { setupTestData, endTesting } from "./testHelper";
 
 beforeAll(async () => {
   await setupTestData();
 });
-
-// Test structure:
-// 1. Arrange: Choose invalid credentials
-// 2. Act: Send request
-// 4. Assert: expect certain outcome
 
 // login --> happy path
 it("returns 200 with valid credentials", async () => {

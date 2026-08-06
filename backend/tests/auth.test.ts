@@ -1,17 +1,12 @@
-const request = require("supertest");
-const jwt = require("jsonwebtoken");
+import request from "supertest";
+import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { app } from "../app";
-const { setupTestData, endTesting } = require("./testHelper");
+import { setupTestData, endTesting } from "./testHelper";
 
 beforeAll(async () => {
   await setupTestData();
 });
-
-// Test structure:
-// 1. Arrange: Choose invalid credentials
-// 2. Act: Send request
-// 4. Assert: expect certain outcome
 
 const getToken = async () => {
   const loginRequest = await request(app).post("/api/user/login").send({

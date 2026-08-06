@@ -1,9 +1,10 @@
-const request = require("supertest");
+import request from "supertest";
 import { app } from "../app";
-const { setupTestData, endTesting } = require("./testHelper");
+import { setupTestData, endTesting } from "./testHelper";
+import { ValidatedProgramBody } from "../validation/programSchemas";
 
 const PATH = "/api/programs/create";
-let token;
+let token: string;
 
 beforeAll(async () => {
   await setupTestData();
@@ -13,17 +14,23 @@ beforeAll(async () => {
     password: "password123",
   });
 
-  token = loginResponse.body.token;
+  const receivedToken: unknown = loginResponse.body.token;
+
+  if (typeof receivedToken !== "string") {
+    throw new Error("Login response did not contain a token");
+  }
+
+  token = receivedToken;
 });
 
-const makeRequest = (data) => {
+const makeRequest = (data: object) => {
   return request(app)
     .post(PATH)
     .set("Authorization", `Bearer ${token}`)
     .send(data);
 };
 
-const validProgram = () => ({
+const validProgram = (): ValidatedProgramBody => ({
   name: "ProgramName",
   description: "Test description",
   workouts: [
@@ -41,6 +48,39 @@ const validProgram = () => ({
     },
   ],
 });
+
+type Overrides = Record<string, unknown>;
+
+const buildProgramPayload = ({
+  program = {},
+  workout = {},
+  exercise = {},
+}: {
+  program?: Overrides;
+  workout?: Overrides;
+  exercise?: Overrides;
+} = {}): object => {
+  const base = validProgram();
+  const baseWorkout = base.workouts[0];
+  const baseExercise = baseWorkout.exercises[0];
+
+  return {
+    ...base,
+    workouts: [
+      {
+        ...baseWorkout,
+        exercises: [
+          {
+            ...baseExercise,
+            ...exercise,
+          },
+        ],
+        ...workout,
+      },
+    ],
+    ...program,
+  };
+};
 
 // happy paths
 it("returns 201 for program creation without workouts", async () => {
@@ -220,8 +260,9 @@ it("returns 201 for program with exercise with zero reps", async () => {
 
 // // sad paths
 it("returns 400 for missing program name", async () => {
-  const data = validProgram();
-  delete data.name;
+  const data = buildProgramPayload({
+    program: { name: undefined },
+  });
 
   const response = await makeRequest(data);
 
@@ -234,8 +275,9 @@ it("returns 400 for missing program name", async () => {
 });
 
 it("returns 400 for empty program name", async () => {
-  const data = validProgram();
-  data.name = "";
+  const data = buildProgramPayload({
+    program: { name: "" },
+  });
 
   const response = await makeRequest(data);
 
@@ -248,8 +290,9 @@ it("returns 400 for empty program name", async () => {
 });
 
 it("returns 400 for whitespace program name", async () => {
-  const data = validProgram();
-  data.name = "   ";
+  const data = buildProgramPayload({
+    program: { name: "   " },
+  });
 
   const response = await makeRequest(data);
 
@@ -262,8 +305,9 @@ it("returns 400 for whitespace program name", async () => {
 });
 
 it("returns 400 when program name is not a string", async () => {
-  const data = validProgram();
-  data.name = 45335;
+  const data = buildProgramPayload({
+    program: { name: 45335 },
+  });
 
   const response = await makeRequest(data);
 
@@ -276,9 +320,10 @@ it("returns 400 when program name is not a string", async () => {
 });
 
 it("returns 400 when exercise name is not a string", async () => {
-  const data = validProgram();
-  data.name = "NonStringExerciseName";
-  data.workouts[0].exercises[0].name = 54354;
+  const data = buildProgramPayload({
+    program: { name: "NonStringExerciseName" },
+    exercise: { name: 54354 },
+  });
 
   const response = await makeRequest(data);
 
@@ -290,9 +335,9 @@ it("returns 400 when exercise name is not a string", async () => {
 });
 
 it("returns 400 when workouts isn't an array", async () => {
-  const data = validProgram();
-  data.name = "NonArrayWorkouts";
-  data.workouts = 3424;
+  const data = buildProgramPayload({
+    program: { name: "NonArrayWorkouts", workouts: 34234 },
+  });
 
   const response = await makeRequest(data);
 
@@ -304,9 +349,10 @@ it("returns 400 when workouts isn't an array", async () => {
 });
 
 it("returns 400 for missing workout name", async () => {
-  const data = validProgram();
-  data.name = "MissingWorkoutName";
-  delete data.workouts[0].name;
+  const data = buildProgramPayload({
+    program: { name: "MissingWorkoutName" },
+    workout: { name: undefined },
+  });
 
   const response = await makeRequest(data);
 
@@ -318,9 +364,10 @@ it("returns 400 for missing workout name", async () => {
 });
 
 it("returns 400 for empty workout name", async () => {
-  const data = validProgram();
-  data.name = "EmptyWorkoutName";
-  data.workouts[0].name = "";
+  const data = buildProgramPayload({
+    program: { name: "EmptyWorkoutName" },
+    workout: { name: "" },
+  });
 
   const response = await makeRequest(data);
 
@@ -332,9 +379,10 @@ it("returns 400 for empty workout name", async () => {
 });
 
 it("returns 400 for whitespace workout name", async () => {
-  const data = validProgram();
-  data.name = "WhitespaceWorkoutName";
-  data.workouts[0].name = "   ";
+  const data = buildProgramPayload({
+    program: { name: "WhitespaceWorkoutName" },
+    workout: { name: "   " },
+  });
 
   const response = await makeRequest(data);
 
@@ -346,9 +394,10 @@ it("returns 400 for whitespace workout name", async () => {
 });
 
 it("returns 400 for non-string workout name", async () => {
-  const data = validProgram();
-  data.name = "NonSpaceWorkoutName";
-  data.workouts[0].name = 54355;
+  const data = buildProgramPayload({
+    program: { name: "NonStringWorkoutName" },
+    workout: { name: 43232 },
+  });
 
   const response = await makeRequest(data);
 
@@ -360,9 +409,10 @@ it("returns 400 for non-string workout name", async () => {
 });
 
 it("returns 400 when exercises isn't an array", async () => {
-  const data = validProgram();
-  data.name = "NonArrayExercises";
-  data.workouts[0].exercises = 54354;
+  const data = buildProgramPayload({
+    program: { name: "NonArrayExercise" },
+    workout: { exercises: 43232 },
+  });
 
   const response = await makeRequest(data);
 
@@ -374,9 +424,10 @@ it("returns 400 when exercises isn't an array", async () => {
 });
 
 it("returns 400 for missing exercises", async () => {
-  const data = validProgram();
-  data.name = "Missing Exercises";
-  delete data.workouts[0].exercises;
+  const data = buildProgramPayload({
+    program: { name: "Missing Exercises" },
+    workout: { exercises: undefined },
+  });
 
   const response = await makeRequest(data);
 
@@ -388,9 +439,10 @@ it("returns 400 for missing exercises", async () => {
 });
 
 it("returns 400 for empty exercise array", async () => {
-  const data = validProgram();
-  data.name = "Empty Exercises";
-  data.workouts[0].exercises = [];
+  const data = buildProgramPayload({
+    program: { name: "Empty Exercises" },
+    workout: { exercises: [] },
+  });
 
   const response = await makeRequest(data);
 
@@ -402,9 +454,10 @@ it("returns 400 for empty exercise array", async () => {
 });
 
 it("returns 400 for missing exercise name", async () => {
-  const data = validProgram();
-  data.name = "MissingExerciseName";
-  delete data.workouts[0].exercises[0].name;
+  const data = buildProgramPayload({
+    program: { name: "Missing Exercise Name" },
+    exercise: { name: undefined },
+  });
 
   const response = await makeRequest(data);
 
@@ -416,9 +469,10 @@ it("returns 400 for missing exercise name", async () => {
 });
 
 it("returns 400 for empty exercise name", async () => {
-  const data = validProgram();
-  data.name = "Empty exercise name";
-  data.workouts[0].exercises[0].name = "";
+  const data = buildProgramPayload({
+    program: { name: "Empty Exercise Name" },
+    exercise: { name: "" },
+  });
 
   const response = await makeRequest(data);
 
@@ -430,9 +484,10 @@ it("returns 400 for empty exercise name", async () => {
 });
 
 it("returns 400 for whitespace exercise name", async () => {
-  const data = validProgram();
-  data.name = "Whitespace exercise name";
-  data.workouts[0].exercises[0].name = "   ";
+  const data = buildProgramPayload({
+    program: { name: "Whitespace exercise name" },
+    exercise: { name: "   " },
+  });
 
   const response = await makeRequest(data);
 
@@ -444,9 +499,10 @@ it("returns 400 for whitespace exercise name", async () => {
 });
 
 it("returns 400 for negative sets", async () => {
-  const data = validProgram();
-  data.name = "Negative sets";
-  data.workouts[0].exercises[0].target_sets = -10;
+  const data = buildProgramPayload({
+    program: { name: "Negative Sets" },
+    exercise: { target_sets: -10 },
+  });
 
   const response = await makeRequest(data);
 
@@ -458,9 +514,10 @@ it("returns 400 for negative sets", async () => {
 });
 
 it("returns 400 for negative reps", async () => {
-  const data = validProgram();
-  data.name = "Negative reps";
-  data.workouts[0].exercises[0].target_reps = -10;
+  const data = buildProgramPayload({
+    program: { name: "Negative Reps" },
+    exercise: { target_reps: -10 },
+  });
 
   const response = await makeRequest(data);
 
@@ -472,9 +529,10 @@ it("returns 400 for negative reps", async () => {
 });
 
 it("returns 400 for negative rest", async () => {
-  const data = validProgram();
-  data.name = "Negative rest";
-  data.workouts[0].exercises[0].target_rest = -10;
+  const data = buildProgramPayload({
+    program: { name: "Negative Rest" },
+    exercise: { target_rest: -10 },
+  });
 
   const response = await makeRequest(data);
 
@@ -486,9 +544,10 @@ it("returns 400 for negative rest", async () => {
 });
 
 it("returns 400 when sets is not a number", async () => {
-  const data = validProgram();
-  data.name = "Non-number sets";
-  data.workouts[0].exercises[0].target_sets = "Hey there";
+  const data = buildProgramPayload({
+    program: { name: "Non-number sets" },
+    exercise: { target_sets: "Hey" },
+  });
 
   const response = await makeRequest(data);
 
@@ -500,9 +559,10 @@ it("returns 400 when sets is not a number", async () => {
 });
 
 it("returns 400 when reps is not a number", async () => {
-  const data = validProgram();
-  data.name = "Non-number reps";
-  data.workouts[0].exercises[0].target_reps = "Hey there";
+  const data = buildProgramPayload({
+    program: { name: "Non-number reps" },
+    exercise: { target_reps: "Hey" },
+  });
 
   const response = await makeRequest(data);
 
@@ -514,9 +574,10 @@ it("returns 400 when reps is not a number", async () => {
 });
 
 it("returns 400 when rest is not a number", async () => {
-  const data = validProgram();
-  data.name = "Non-number rest";
-  data.workouts[0].exercises[0].target_rest = "Hey there";
+  const data = buildProgramPayload({
+    program: { name: "Non-number rest" },
+    exercise: { target_rest: "Hey" },
+  });
 
   const response = await makeRequest(data);
 
@@ -528,11 +589,11 @@ it("returns 400 when rest is not a number", async () => {
 });
 
 it("returns all errors with correct nested field paths", async () => {
-  const data = validProgram();
-  data.name = "";
-  data.workouts[0].name = "";
-  data.workouts[0].exercises[0].name = "";
-  data.workouts[0].exercises[0].target_sets = -1;
+  const data = buildProgramPayload({
+    program: { name: "" },
+    workout: { name: "" },
+    exercise: { name: "", target_sets: -1 },
+  });
 
   const response = await makeRequest(data);
 

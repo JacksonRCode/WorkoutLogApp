@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
 import { pool } from "../db/poolConnection";
 
 const endTesting = async () => {
@@ -188,4 +188,4 @@ const setupTestData = async () => {
   }
 };
 
-module.exports = { setupTestData, endTesting };
+export { setupTestData, endTesting };
