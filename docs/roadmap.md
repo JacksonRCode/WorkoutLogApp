@@ -2,6 +2,8 @@
 
 ## Sprint 1: Project Foundation
 
+### Done
+
 - Improve README
 - Add architecture documentation
 - Add `.env.example`
@@ -9,10 +11,18 @@
 
 ## Sprint 2: Backend Production Readiness
 
+### Done
+
 - Centralized error handling
 - Request logging
 - Improved validation
 - Authentication improvements
+
+## Sprint 2.5: Migration to TypeScript
+
+### Done
+
+- Everything's got to go!
 
 ## Sprint 3: Dockerization
 

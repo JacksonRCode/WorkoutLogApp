@@ -6,14 +6,14 @@ This project serves both as a practical fitness application and as a long-term e
 
 ---
 
-| Status         | Active Development |
-| -------------- | ------------------ |
-| Frontend       | React              |
-| Backend        | Express            |
-| Database       | PostgreSQL         |
-| Authentication | JWT                |
-| Deployment     | Planned (AWS)      |
-| License        | MIT                |
+| Status         | Active Development  |
+| -------------- | ------------------- |
+| Frontend       | React               |
+| Backend        | Express, TypeScript |
+| Database       | PostgreSQL          |
+| Authentication | JWT                 |
+| Deployment     | Planned (AWS)       |
+| License        | MIT                 |
 
 ---
 
@@ -53,6 +53,9 @@ Technical:
 - Jest and Supertest integration testing
 - Separate development and test database configuration
 - Zod request validation with reusable middleware
+- Strict TypeScript across backend source and integration tests
+- Typed Express requests, authenticated requests, and route parameters
+- Typed PostgreSQL query inputs and result rows
 
 ---
 
@@ -66,6 +69,7 @@ Technical:
 
 - Node.js
 - Express
+- TypeScript
 
 Database
 
@@ -83,6 +87,7 @@ Testing
 
 - Jest
 - Supertest
+- Babel
 
 Development
 
@@ -134,6 +139,8 @@ npm install
 
 3. Copy `.env.example` to `.env` inside the `backend/` directory
 
+Integration tests use `backend/.env.test` and should point to a separate PostgreSQL test database.
+
 4. Set up servers
 
 Open two terminals
@@ -154,6 +161,28 @@ npm run dev
 
 5. Visit website
    http://localhost:5173/
+
+---
+
+## Backend TypeScript Workflow
+
+The backend is written in strict TypeScript and compiled to CommonJS JavaScript in `backend/dist/`.
+
+Run backend commands from `backend/`:
+
+| Command                  | Purpose                                                                     |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `npm run dev`            | Run `server.ts` with `tsx` and restart on source changes                    |
+| `npm run typecheck`      | Typecheck production source without emitting files                          |
+| `npm run typecheck:test` | Typecheck source and Jest integration tests without emitting files          |
+| `npm test`               | Transform TypeScript with Babel and execute Jest/Supertest tests            |
+| `npm run build`          | Compile production source into `dist/`                                      |
+| `npm start`              | Run the compiled production entry point, `dist/server.js`                   |
+| `npm run verify`         | Run source typechecking, test typechecking, tests, and the production build |
+
+Development uses `tsx`, so a manual build is not required before `npm run dev`. Production uses compiled files and expects environment variables to be supplied by the hosting environment; it does not require `.env` files inside `dist/`.
+
+TypeScript provides compile-time guarantees, while Zod validates untrusted request data at runtime. Controllers consume Zod-inferred validated body types, authentication augments Express requests with an optional `user_id`, and database queries define typed parameters and result rows.
 
 ---
 

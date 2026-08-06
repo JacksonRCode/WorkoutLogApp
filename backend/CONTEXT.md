@@ -1305,22 +1305,20 @@ Jest and Supertest validation tests
 
 ---
 
-## 19. Planned TypeScript Migration
+## 19. TypeScript Migration — Completed
 
-A separate issue was created:
+The backend TypeScript migration was completed incrementally after request validation. Existing API behavior, status codes, messages, and response shapes were preserved throughout the migration.
 
-```text
-Migrate backend incrementally to TypeScript
-```
+### Current TypeScript setup
 
-The TypeScript migration should happen after request validation is completed and merged.
-
-### Why after validation
-
-- Avoid mixing two major architectural changes.
-- Zod schemas will migrate naturally to TypeScript.
-- Existing tests provide a migration safety net.
-- The backend is still small enough for incremental conversion.
+- Production source and integration tests are written in TypeScript.
+- `tsconfig.json` uses strict checking and compiles production source to `dist/`.
+- `tests/tsconfig.json` adds Jest types and checks tests without emitting files.
+- `tsx watch` runs the development server directly from `server.ts`.
+- Babel transforms TypeScript test syntax before Jest executes tests.
+- `npm run verify` runs production typechecking, test typechecking, integration tests, and the production build.
+- Production runs compiled `dist/server.js` files.
+- Production environment variables are supplied externally; `.env` files are not copied into `dist/`.
 
 ### Migration approach
 
@@ -1330,7 +1328,7 @@ The TypeScript migration should happen after request validation is completed and
 - Do not combine TypeScript migration with an ES module migration.
 - Convert incrementally.
 
-### Suggested migration order
+### Completed migration order
 
 ```text
 1. TypeScript tooling and tsconfig
@@ -1339,13 +1337,13 @@ The TypeScript migration should happen after request validation is completed and
 4. Validation middleware
 5. Configuration
 6. Authentication middleware
-7. app.js and server.js
+7. app.ts and server.ts
 8. Controllers
 9. Database query functions
 10. Test helpers and tests
 ```
 
-### TypeScript migration scope
+### Completed migration scope
 
 Includes:
 
@@ -1356,6 +1354,14 @@ Includes:
 - Zod-inferred request types.
 - Build, development, and testing scripts.
 - Documentation.
+
+Important type boundaries now include:
+
+- Zod-inferred validated request bodies.
+- An augmented Express request containing optional `user_id`.
+- Explicit route-parameter types and runtime numeric conversion.
+- PostgreSQL row interfaces, nullable fields, query parameters, return values, and transaction clients.
+- `unknown` error handling with narrowing before PostgreSQL-specific properties are read.
 
 Excludes:
 
@@ -1410,9 +1416,9 @@ Likely goals:
 - include request context safely;
 - avoid logging passwords, tokens, or secrets.
 
-### TypeScript
+### TypeScript tooling cleanup
 
-Complete Issue #17 first, then begin the dedicated migration issue.
+The migration is complete. A future tooling-only cleanup may disable `allowJs` after confirming that no compatibility files require it and may evaluate an ES module migration as a separate change.
 
 ---
 
@@ -1439,20 +1445,26 @@ Complete Issue #17 first, then begin the dedicated migration issue.
 - TypeScript migration issue created.
 - Request-validation branch created.
 - Zod selected as the validation library.
+- Zod validation schemas and reusable validation middleware completed.
+- Backend production source migrated to strict TypeScript.
+- Express requests, authentication state, and route parameters typed.
+- Database query inputs, result rows, return values, and transaction clients typed.
+- Integration tests and test helpers migrated to TypeScript.
+- Development, typechecking, testing, build, and production scripts support TypeScript.
+- TypeScript setup documented in the README and architecture guide.
 
 ### In progress
 
 ```text
-Issue #17 — Request Validation
-Branch: feat/17-request-validation
+TypeScript migration documentation and final verification
+Branch: feat/22-typescript-migration
 ```
 
 ### Immediate action
 
 ```text
-Install Zod
-Commit dependency files
-Push branch to GitHub
-Pull branch on laptop
-Create signup schema
+Run npm run verify
+Review the migration against its acceptance criteria
+Commit documentation
+Open or update the pull request
 ```

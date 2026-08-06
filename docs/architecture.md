@@ -2,7 +2,7 @@
 
 ## Overview
 
-WorkoutLogApp is a full-stack workout tracking platform with a React frontend, Express backend, and PostgreSQL database.
+WorkoutLogApp is a full-stack workout tracking platform with a React frontend, TypeScript/Express backend, and PostgreSQL database.
 
 ## System Architecture
 
@@ -15,7 +15,7 @@ WorkoutLogApp is a full-stack workout tracking platform with a React frontend, E
           HTTPS / REST API
                     │
                     ▼
-              Express Server
+         TypeScript / Express Server
                     │
       ┌─────────────┴─────────────┐
       │                           │
@@ -57,6 +57,55 @@ Database Layer
   v
 PostgreSQL
 ```
+
+Routers compose endpoints and middleware. Authentication and Zod validation run before controllers. Controllers coordinate business behavior and transactions, while query modules own SQL and PostgreSQL result typing. Expected failures are forwarded to centralized Express error middleware.
+
+## TypeScript Architecture
+
+The backend uses strict TypeScript for application source, database access, middleware, controllers, routers, and integration tests.
+
+- `backend/tsconfig.json` checks production source and compiles it to `backend/dist/`.
+- `backend/tests/tsconfig.json` extends the production configuration, adds Jest globals, and typechecks tests without emitting files.
+- `tsx` executes TypeScript directly during development and watches for source changes.
+- `tsc` produces the production build.
+- Babel removes TypeScript syntax before Jest executes integration tests.
+- The package remains CommonJS. The TypeScript migration deliberately did not include an ES module migration.
+
+```text
+Development:  server.ts -> tsx watch -> Node.js
+Production:   server.ts -> tsc -> dist/server.js -> Node.js
+Tests:        *.test.ts -> test typecheck + Babel -> Jest/Supertest
+```
+
+### Static types and runtime validation
+
+TypeScript checks code during development and build time, but its types do not exist after compilation. It therefore cannot determine whether an incoming HTTP body is trustworthy. Zod validates request bodies at runtime, applies trimming, normalization, and defaults, and replaces `req.body` with parsed data before the controller runs.
+
+Zod-inferred types connect the two layers:
+
+```text
+Untrusted JSON
+  -> Zod schema and validation middleware
+  -> parsed request body
+  -> typed controller
+  -> typed database query
+  -> PostgreSQL
+```
+
+Express request augmentation defines the optional authenticated `user_id`. Protected controllers narrow that value before passing it to database functions. Route controllers also type URL parameters explicitly and convert their original string values to validated numeric IDs.
+
+Database row interfaces describe PostgreSQL results. Query functions type their inputs, transaction `PoolClient` parameters, query rows, and return values, including distinctions among `null`, `undefined`, empty arrays, and booleans.
+
+## Testing Architecture
+
+Jest and Supertest exercise the API through the Express application without opening a network port. Tests use a separate PostgreSQL database configured through `.env.test`. The setup helper resets and seeds fixture data, and test teardown closes the database pool.
+
+The test pipeline has two separate responsibilities:
+
+- TypeScript checks test code through `tests/tsconfig.json`.
+- Babel transforms TypeScript syntax so Jest can execute the tests.
+
+`npm run verify` runs production typechecking, test typechecking, the integration suite, and a production build.
 
 ## Database
 
@@ -110,6 +159,14 @@ Protected backend routes validate token
 
 ## Key Design Decisions
 
+### Why TypeScript?
+
+TypeScript was added to make contracts between schemas, middleware, controllers, and database queries explicit. It catches mismatched request bodies, missing authenticated identifiers, incorrect route-parameter use, nullable database values, and invalid query return assumptions before runtime.
+
+### Why Zod when TypeScript is already used?
+
+TypeScript only checks code at compile time. Zod validates data that enters the running application, including HTTP request bodies. Zod also produces inferred TypeScript types, preventing separate runtime schemas and request-body interfaces from drifting apart.
+
 ### Why PostgreSQL?
 
 PostgreSQL was chosen because the core data model is relational. Users, programs, workouts, exercises, and logged workout data all have clear relationships that benefit from structured schemas, joins, constraints, and query optimizations.
@@ -141,6 +198,7 @@ A distributed or microservice architecture would add unnecessary complexity at t
 - The application is not containerized yet.
 - Deployment is not yet production-ready.
 - API documentation is not yet generated with OpenAPI/Swagger.
+- The backend still retains incremental-migration compatibility settings such as `allowJs`.
 
 ## Planned Architecture
 
