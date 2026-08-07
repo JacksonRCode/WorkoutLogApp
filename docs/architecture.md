@@ -43,6 +43,9 @@ The React frontend is responsible for:
 Request
   |
   v
+Request Loggin / Request ID
+  |
+  v
 Router
   |
   v
@@ -59,6 +62,31 @@ PostgreSQL
 ```
 
 Routers compose endpoints and middleware. Authentication and Zod validation run before controllers. Controllers coordinate business behavior and transactions, while query modules own SQL and PostgreSQL result typing. Expected failures are forwarded to centralized Express error middleware.
+
+## Request Logging and Observability
+
+The backend uses Pino for structured application logging and `pino-http` for HTTP request logging.
+
+The request-logging middleware runs near the beginning of the Express middleware chain. For every request, it:
+
+- Generates a UUID request identifier
+- Returns the identifier through the `X-Request-Id` response header
+- Attaches a request-scoped child logger to `req.log`
+- Records the request method, URL, response status, and response time
+- Logs successful and redirect responses at `info`
+- Logs `4xx` responses at `warn`
+- Logs `5xx` responses at `error`
+
+The request ID allows application and HTTP completed logs from the same request to be correlated.
+
+```text
+Incoming request
+ -> generate request ID
+ -> execute middleware and controller
+ -> log unexpected error with req.log
+ -> send response
+ -> log status and response time
+```
 
 ## TypeScript Architecture
 
@@ -153,7 +181,7 @@ Protected backend routes validate token
 - Controllers forward errors using `next(error)`.
 - Expected application errors use custom AppError subclasses.
 - Supported errors currently include 400, 401, 404, and 409
-- Unexpected errors return a generic 500 response
+- Unexpected errors are logged with structured details and the request ID before a generic 500 response is returned.
 
 ---
 

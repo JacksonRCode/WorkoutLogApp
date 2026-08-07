@@ -4,7 +4,7 @@ import { ValidationError } from "../errors/ValidationError";
 
 const handleError = (
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
@@ -17,9 +17,10 @@ const handleError = (
     return res.status(err.statusCode).json(response);
   }
 
+  req.log.error({ err }, "Unhandled request error");
   return res.status(500).json({
     message: "Internal server error",
   });
 };
 
-export { handleError }; // Need to change imports
+export { handleError };
