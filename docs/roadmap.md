@@ -14,7 +14,7 @@
 
 ## Phase 1: Production Guardrails
 
-### 1. Structured Request Logging
+### 1. Structured Request Logging (COMPLETED)
 
 - Add Pino and HTTP request logging
 - Include request method, route, status code, response time, and request ID
@@ -23,7 +23,7 @@
 - Log unexpected errors without changing API responses
 - Add focused tests for logging configuration where valuable
 
-### 2. Continuous Integration
+### 2. Continuous Integration (COMPELTED)
 
 - Add a GitHub Actions pull-request workflow
 - Install dependencies with `npm ci`
@@ -32,8 +32,6 @@
 - Run Jest integration tests
 - Run the production build
 - Protect the main branch from failing checks
-
-**Demonstrates:** automated quality control, GitHub workflows, reliable team practices.
 
 ## Phase 2: Complete the Core Product
 

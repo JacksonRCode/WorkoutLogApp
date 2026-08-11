@@ -13,7 +13,7 @@ permissions:
 jobs:
   # Job name
   backend:
-    name: Backend Verification
+    name: backend Verification
     runs-on: ubuntu-latest
     defaults:
       run:
