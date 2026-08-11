@@ -1,5 +1,7 @@
 # WorkoutTracker
 
+[![CI](https://github.com/jackdareid/WorkoutLogApp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jackdareid/WorkoutLogApp/actions/workflows/ci.yml)
+
 WorkoutTracker is a full-stack web application for creating workout programs, logging training sessions, and tracking long-term progress. It was built to demonstrate modern software engineering principles including RESTful API development, JWT authentication, PostgreSQL database design, and scalable application architecture.
 
 This project serves both as a practical fitness application and as a long-term exploration of modern software engineering practices, with a focus on scalable backend development and production-ready architecture.
@@ -183,6 +185,15 @@ Run backend commands from `backend/`:
 Development uses `tsx`, so a manual build is not required before `npm run dev`. Production uses compiled files and expects environment variables to be supplied by the hosting environment; it does not require `.env` files inside `dist/`.
 
 TypeScript provides compile-time guarantees, while Zod validates untrusted request data at runtime. Controllers consume Zod-inferred validated body types, authentication augments Express requests with an optional `user_id`, and database queries define typed parameters and result rows.
+
+---
+
+## Continuous Integration (CI)
+
+- CI runs on pull requests and pushes to main.
+- Backend runs typechecking, tests, and build against PostgreSQL.
+- Frontend runs linting and build.
+- Both jobs must pass before merging.
 
 ---
 
