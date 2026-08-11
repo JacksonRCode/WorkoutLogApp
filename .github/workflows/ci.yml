@@ -1,0 +1,103 @@
+name: CI
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+
+jobs:
+  # Job name
+  backend:
+    name: Backend Verification
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: ci_test_database
+          POSTGRES_USER: ci_test_username
+          POSTGRES_PASSWORD: ci_test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_DATABASE: ci_test_database
+      DB_USERNAME: ci_test_username
+      DB_PASSWORD: ci_test_password
+      JWT_SECRET: ci_test_jwt
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Use Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Backend dependency installation
+        run: npm ci
+
+      - name: Init psql schema
+        env:
+          PGPASSWORD: ${{ env.DB_PASSWORD }}
+        run: |
+          psql \
+            --set=ON_ERROR_STOP=1 \
+            --host="$DB_HOST" \
+            --port="$DB_PORT" \
+            --dbname="$DB_DATABASE" \
+            --username="$DB_USERNAME" \
+            --file=db/init.sql
+
+      - name: Backend verification
+        run: npm run verify
+
+  # Job name
+  frontend:
+    name: frontend verification
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
+
+      - name: Frontend dependency installation
+        run: npm ci
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Frontend verification
+        run: npm run build
