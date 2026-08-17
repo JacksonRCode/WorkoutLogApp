@@ -1,4 +1,4 @@
-# WorkoutTracker
+# Workout Tracker
 
 [![CI](https://github.com/jackdareid/WorkoutLogApp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jackdareid/WorkoutLogApp/actions/workflows/ci.yml)
 
