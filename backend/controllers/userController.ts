@@ -1,7 +1,7 @@
 import type { RequestHandler } from "express";
 import bcrypt from "bcrypt";
-import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { DatabaseError } from "pg";
+import { issueAccessToken } from "../auth/accessToken";
 import type {
   ValidatedLoginBody,
   ValidatedSignupBody,
@@ -10,19 +10,10 @@ import { ConflictError } from "../errors/ConflictError";
 import { NotFoundError } from "../errors/NotFoundError";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 import { BadRequestError } from "../errors/BadRequestError";
-import { config } from "../config";
 import { getLoginInfo, getUserById } from "../db/queries/retrievalQueries";
 import { createUser } from "../db/queries/inputQueries";
 
 const SALT_ROUNDS = 10;
-
-const createToken = (id: number): string => {
-  const JWT_SECRET: Secret = config.auth.jwtSecret;
-  const options: SignOptions = {
-    expiresIn: config.auth.jwtExpiresIn,
-  };
-  return jwt.sign({ user_id: id }, JWT_SECRET, options);
-};
 
 /**
  * Logs a user in and returns all of their info minus their password.
@@ -47,7 +38,7 @@ const loginUser: RequestHandler<
 
     if (verifyUser) {
       const { password_hash, ...user_data } = user;
-      const token = createToken(user.user_id);
+      const token = issueAccessToken(user.user_id);
 
       return res
         .status(200)
@@ -82,7 +73,7 @@ const signupUser: RequestHandler<
       hashed_password,
     );
 
-    const token = createToken(createdUser.user_id);
+    const token = issueAccessToken(createdUser.user_id);
 
     return res
       .status(201)

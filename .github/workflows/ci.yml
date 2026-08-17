@@ -42,6 +42,8 @@ jobs:
       DB_USERNAME: ci_test_username
       DB_PASSWORD: ci_test_password
       JWT_SECRET: ci_test_jwt
+      JWT_ISSUER: ci_test_iss
+      JWT_AUDIENCE: ci_test_aud
 
     steps:
       - name: Check out repository

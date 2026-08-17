@@ -33,6 +33,23 @@
 - Run the production build
 - Protect the main branch from failing checks
 
+### 3. Standardize JWT access-token authentication
+
+- Define a consistent JWT payload and claim structure
+- Explicitly configure the signing algorithm
+- Validate decoded token claims
+- Standardize authentication error responses
+- Distinguish expired tokens from other invalid tokens
+- Centralize frontend unauthorized and logout behavior
+- Expand authentication test coverage
+- Document current behavior, security limitations, and future plans
+
+### 4. Introduce Versioned Database Migrations
+
+- Select and configure a PostgreSQL migration tool.
+- Convert the current schema into an ordered migration history and add commands for applying, inspecting, and rolling back migrations where supported.
+- The development, test, CI, and future staging environments should all use the same migrations.
+
 ## Phase 2: Complete the Core Product
 
 Build one complete vertical slice before adding more infrastructure.
