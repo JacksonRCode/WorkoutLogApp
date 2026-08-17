@@ -3,7 +3,7 @@ import { type RequestHandler } from "express";
 import { ValidationError } from "../errors/ValidationError";
 
 function validateRequest<Type extends z.Schema>(schema: Type): RequestHandler {
-  return (req, res, next) => {
+  return (req, _res, next) => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
       const errors = result.error.issues.map((issue) => ({

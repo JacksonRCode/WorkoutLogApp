@@ -1,39 +1,37 @@
 import type { RequestHandler } from "express";
-import jwt from "jsonwebtoken";
-import { config } from "../config";
+import { TokenExpiredError } from "jsonwebtoken";
+import { verifyAccessToken } from "../auth/accessToken";
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 
+function extractToken(authHeader: string): string | null {
+  const rex = /^Bearer\s+(?<token>[A-Za-z0-9\-._~+/]+=*)$/i;
+  const match = authHeader.match(rex);
+
+  return match?.groups?.token ?? null;
+}
+
 const protect: RequestHandler = (req, _res, next) => {
-  let token;
+  if (req.headers.authorization === undefined) {
+    return next(new UnauthorizedError("Access token required"));
+  }
+  const token = extractToken(req.headers.authorization);
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer ")
-  ) {
+  if (token) {
     try {
-      token = req.headers.authorization.split(" ")[1];
+      const userId = verifyAccessToken(token);
 
-      const decoded = jwt.verify(token, config.auth.jwtSecret);
+      req.user_id = userId;
 
-      // Make sure decoded isn't a string and includes numeric user_id
-      if (
-        typeof decoded !== "string" &&
-        "user_id" in decoded &&
-        typeof decoded.user_id === "number"
-      ) {
-        req.user_id = decoded.user_id;
-        return next();
-      }
-
-      return next(new UnauthorizedError("Not authorized, token failed"));
+      return next();
     } catch (err) {
-      return next(new UnauthorizedError("Not authorized, token failed"));
+      if (err instanceof TokenExpiredError) {
+        return next(new UnauthorizedError("Access token expired"));
+      }
+      return next(new UnauthorizedError("Invalid access token"));
     }
   }
 
-  if (!token) {
-    return next(new UnauthorizedError("Not authorized, no token provided"));
-  }
+  return next(new UnauthorizedError("Invalid access token"));
 };
 
 export { protect };

@@ -1,72 +1,80 @@
-# Workout Tracker — Developer Handoff Context
+# WorkoutLogApp — Developer Handoff Context
 
-## 1. Project Overview
+Last updated: August 12, 2026
 
-**Project:** Workout Tracker / WorkoutLogApp  
-**Repository:** `github.com/jackdareid/WorkoutLogApp`  
-**Primary goal:** Build a production-ready full-stack workout tracking application that demonstrates strong backend architecture, testing, database design, authentication, validation, deployment, and engineering workflow practices.
+This document records the current technical state of the project. Repository-wide mentoring and collaboration instructions live in [`../AGENTS.md`](../AGENTS.md).
 
-The application allows authenticated users to:
+When this document and the implementation disagree, treat the code and current verification results as the source of truth, then update this document.
 
-- Create accounts and log in.
-- Create workout programs.
-- Create workouts within programs.
-- Add existing or custom exercises to workouts.
-- Retrieve programs, workouts, and exercises.
-- Remove programs and workout-program relationships.
-- Eventually track completed workouts, exercise performance, and automated progression.
+## 1. Project Purpose
 
-The project is also intended to serve as a flagship portfolio project for junior software engineering applications.
+WorkoutLogApp is a full-stack workout application and portfolio project. Its current product capabilities are centered on authentication and workout-template management.
 
----
+Users can currently:
 
-## 2. Current Technology Stack
+- Sign up and log in.
+- Retrieve their profile.
+- Create workout programs containing workouts and exercises.
+- Retrieve programs, their workouts, and linked exercises.
+- Delete programs and remove workout-program relationships.
+
+The next product milestone is a complete workout-session flow so users can record completed exercises and sets, finish a session, and view workout history.
+
+The engineering goal is a maintainable, tested, observable, and deployable application—not the premature addition of technologies solely for portfolio value.
+
+## 2. Current Stack
 
 ### Frontend
 
 - React
 - Vite
 - React Router
-- Context API for authentication
+- Context API for authentication state
 - Browser `fetch`
-- JWT stored in `localStorage`
+- JavaScript and JSX
+- ESLint
 
 ### Backend
 
-- Node.js
-- Express
-- CommonJS modules
-- PostgreSQL
-- `pg` connection pool
+- Node.js 24
+- Express 5
+- Strict TypeScript
+- CommonJS output
+- PostgreSQL through `pg`
 - bcrypt
-- jsonwebtoken
-- Zod for request validation
-- dotenv-based environment configuration
+- `jsonwebtoken`
+- Zod 4
+- Pino and `pino-http`
+- dotenv
 
-### Testing
+### Testing and automation
 
 - Jest
 - Supertest
+- Babel for transforming TypeScript tests
 - Separate PostgreSQL test database
-- Integration tests against the Express app
-- Test database seeding helper
+- GitHub Actions continuous integration
 
-### Infrastructure and Deployment
+### Planned infrastructure
 
-- Docker planned
-- AWS deployment planned
-- Likely AWS services:
-  - EC2
-  - RDS
-  - CloudWatch
-  - IAM
-- Production environment variables will be supplied by the hosting environment rather than local `.env` files.
+- Versioned database migrations
+- Docker and Docker Compose
+- AWS staging deployment
+- Continuous deployment after CI succeeds
 
----
+## 3. Repository Instructions and Documentation
 
-## 3. Engineering Workflow
+- `AGENTS.md`: mentoring, learning, debugging, review, and collaboration behavior.
+- `README.md`: setup, commands, current features, and high-level project presentation.
+- `docs/architecture.md`: architecture and major design decisions.
+- `docs/roadmap.md`: current engineering and product sequence.
+- `backend/CONTEXT.md`: current backend handoff and active implementation state.
 
-Development is organized through GitHub issues, milestones, branches, commits, pull requests, and a GitHub Projects board.
+Do not turn this file into a chronological development journal. Remove obsolete plans when a phase is completed.
+
+## 4. Engineering Workflow
+
+Work is organized with GitHub issues, milestones, feature branches, commits, pull requests, and required CI checks.
 
 ### Branch naming
 
@@ -77,13 +85,13 @@ Development is organized through GitHub issues, milestones, branches, commits, p
 Examples:
 
 ```text
-feat/16-centralized-error-handling
-feat/17-request-validation
+feat/28-github-actions
+feat/29-standardize-jwt-auth
 ```
 
 ### Commit naming
 
-Commit prefixes describe the individual change, not the overall branch:
+Use focused conventional prefixes:
 
 ```text
 feat:
@@ -91,159 +99,123 @@ fix:
 refactor:
 test:
 docs:
+ci:
 chore:
 style:
 ```
 
-A feature branch can therefore contain commits such as:
+### Pull requests
 
-```text
-feat: add centralized error middleware
-refactor: forward controller errors to middleware
-test: add authentication integration tests
-fix: add missing next parameter
-docs: document error handling architecture
-```
+- Target `main`.
+- Describe the issue-level outcome.
+- Confirm both required CI jobs pass.
+- Do not merge known broken or incomplete work.
+- `main` requires a pull request and successful backend/frontend verification.
+- Required approving reviews are currently disabled because this is a solo repository and authors cannot approve their own pull requests.
 
-### Pull request naming
-
-The pull request describes the full issue:
-
-```text
-feat: implement centralized error handling
-```
-
-### Development preference
-
-Use a coaching-style workflow:
-
-- Work on one concept or bug at a time.
-- Ask focused questions instead of immediately providing full solutions.
-- Avoid large code dumps unless explicitly requested.
-- Explain why architectural choices are made.
-- Keep the tone energetic and encouraging.
-- Write tests alongside new backend work.
-
----
-
-## 4. Backend Architecture
+## 5. Backend Architecture
 
 ### Request flow
 
 ```text
-Client Request
-→ Express Router
-→ Authentication Middleware
-→ Request Validation Middleware
-→ Controller
-→ Database Query Layer
+HTTP request
+→ Pino request logger and request ID
+→ Express router
+→ authentication middleware when protected
+→ Zod request-body validation when applicable
+→ controller
+→ typed database query layer
 → PostgreSQL
+→ HTTP response
 ```
 
 ### Error flow
 
 ```text
-Database / Controller / Middleware Error
+Expected application failure
+→ next(AppError)
+→ centralized error middleware
+→ stable status and JSON message
+
+Unexpected failure
 → next(error)
-→ Centralized Error Middleware
-→ Consistent JSON response
+→ request-scoped error log
+→ generic 500 response
 ```
 
 ### Layer responsibilities
 
-#### Router
+#### Routers
 
-- Defines endpoint paths and HTTP methods.
-- Applies middleware.
-- Connects requests to controllers.
+- Define paths and HTTP methods.
+- Compose middleware.
+- Connect requests to controllers.
 
 #### Middleware
 
-- Authentication.
-- Request validation.
-- Future request logging.
-- Centralized error response formatting.
+- Authenticate access tokens.
+- Validate untrusted request bodies.
+- Attach request-scoped logging.
+- Convert errors into API responses.
 
-#### Controller
+#### Controllers
 
-- Coordinates request handling.
-- Applies business logic.
-- Translates expected database errors into application errors.
-- Sends successful responses.
-- Forwards unexpected errors with `next(err)`.
+- Coordinate request-specific business behavior.
+- Enforce ownership through database queries.
+- Manage transaction boundaries when coordinating multiple writes.
+- Translate expected database failures into application errors.
+- Preserve stable API response shapes.
 
 #### Database query layer
 
-- Runs SQL.
-- Returns query results.
-- Usually allows errors to propagate naturally.
-- Should not log and rethrow unless it adds meaningful context.
-- Uses `try/catch` when cleanup, rollback, recovery, or translation is required.
+- Own SQL.
+- Type inputs, `PoolClient` transaction parameters, result rows, and return values.
+- Distinguish `null`, `undefined`, empty arrays, and booleans.
+- Let query failures propagate unless cleanup, rollback, recovery, or meaningful translation is required.
 
 #### PostgreSQL
 
-- Final data-integrity layer through:
-  - `NOT NULL`
-  - `UNIQUE`
-  - foreign keys
-  - constraints
-  - transactions
+- Own persistent relational integrity through keys, constraints, and transactions.
+- The current schema is initialized from `backend/db/init.sql`.
+- Versioned migrations have not yet been introduced.
 
----
+## 6. Application and Server Separation
 
-## 5. Application and Server Separation
+`backend/app.ts` constructs and exports the Express application. It registers:
 
-The Express application was separated from process startup to support Supertest.
+- Request logging
+- CORS
+- JSON parsing
+- Health/root route
+- API routes
+- Catch-all 404 handling
+- Centralized error middleware
 
-### `app.js`
+`backend/server.ts` imports the application and calls `listen()`.
 
-Responsibilities:
+Supertest imports `app.ts` directly, allowing integration tests to run without opening a network port.
 
-- Create the Express application.
-- Register middleware.
-- Register routes.
-- Register the catch-all 404 middleware.
-- Register centralized error middleware.
-- Export the application.
+## 7. TypeScript Architecture
 
-```text
-app.js
-→ builds and exports Express app
-```
+The backend source and integration tests have been migrated to TypeScript.
 
-### `server.js`
+- `backend/tsconfig.json` checks production source and emits CommonJS JavaScript to `backend/dist/`.
+- `backend/tests/tsconfig.json` typechecks Jest tests without emitting files.
+- `tsx` runs TypeScript directly during development.
+- Babel removes TypeScript syntax before Jest executes tests.
+- Express's `Request` interface is augmented in `backend/types/express.d.ts` with optional `user_id?: number`.
+- Database row interfaces live in `backend/types/entities.ts`.
+- Zod schemas infer validated request-body types.
 
-Responsibilities:
+The project intentionally remains CommonJS. The TypeScript migration was not an ES module migration.
 
-- Import the application.
-- Read the configured port.
-- Call `app.listen()`.
+`allowJs` remains enabled in `backend/tsconfig.json` as migration-era technical debt even though backend application files are now TypeScript.
 
-```text
-server.js
-→ imports app
-→ starts HTTP server
-```
+## 8. Configuration
 
-Tests import `app.js` directly without starting a network server.
+The centralized immutable configuration object is exported from `backend/config/index.ts`.
 
----
-
-## 6. Configuration Architecture
-
-Configuration management was completed before centralized error handling.
-
-### Environment files
-
-```text
-backend/.env
-backend/.env.test
-.env.example
-```
-
-Production does not load a local `.env` file. Production secrets will be supplied by AWS, Docker, or another hosting environment.
-
-### Environment modes
+Environment modes:
 
 ```text
 development
@@ -251,13 +223,14 @@ test
 production
 ```
 
-### Central configuration object
+Local development loads `.env`, tests load `.env.test`, and production expects its environment to provide configuration without a local environment file.
 
-The backend exports one immutable configuration object:
+Current configuration includes:
 
 ```text
 config.env
 config.server.port
+config.server.environment
 config.database.host
 config.database.port
 config.database.name
@@ -265,125 +238,72 @@ config.database.user
 config.database.password
 config.auth.jwtSecret
 config.auth.jwtExpiresIn
+config.auth.jwtIssuer
+config.auth.jwtAudience
 config.client.url
 ```
 
-### Required environment variables
+Required authentication configuration is being expanded during the current JWT issue:
 
 ```text
-DB_HOST
-DB_DATABASE
-DB_USERNAME
-DB_PASSWORD
 JWT_SECRET
+JWT_ISSUER
+JWT_AUDIENCE
 ```
 
-### Defaults
+`JWT_EXPIRES_IN` defaults to `24h` and is validated against the supported duration format.
+
+Important current follow-up: synchronize `JWT_ISSUER` and `JWT_AUDIENCE` across `.env`, `.env.test`, `.env.example`, and the backend CI job before verification.
+
+## 9. Runtime Validation
+
+TypeScript cannot validate data received at runtime. Zod validates request bodies before controllers receive them.
 
 ```text
-PORT=3000
-DB_PORT=5432
-JWT_EXPIRES_IN=24h
-CLIENT_URL=http://localhost:5173
-NODE_ENV=development
+Untrusted JSON
+→ route-specific Zod schema
+→ validateRequest middleware
+→ parsed and normalized req.body
+→ typed controller
 ```
 
-All direct `process.env` usage should flow through the centralized configuration module.
+Current schemas:
 
----
+- `signupSchema`
+- `loginSchema`
+- `programSchema`
+- Nested workout and linked-exercise schemas
 
-## 7. Authentication Architecture
-
-### JWT structure
-
-Tokens contain:
+Validation failures return:
 
 ```json
 {
-  "user_id": 1
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "workouts.0.exercises.0.name",
+      "message": "Exercise name is required"
+    }
+  ]
 }
 ```
 
-### Token creation
+Validation covers input shape and field rules. It does not replace business checks such as uniqueness, ownership, or resource existence.
 
-JWTs use:
+## 10. Error Handling
 
-```text
-config.auth.jwtSecret
-config.auth.jwtExpiresIn
-```
-
-### Protected routes
-
-The authentication middleware reads:
-
-```text
-Authorization: Bearer <token>
-```
-
-It verifies the token and sets:
-
-```text
-req.user_id
-```
-
-### Authentication error behavior
-
-```text
-Valid token
-→ request continues
-
-Missing token
-→ 401
-→ "Not authorized, no token provided"
-
-Invalid or expired token
-→ 401
-→ "Not authorized, token failed"
-```
-
-Authentication failures now use `UnauthorizedError` and flow through centralized error middleware.
-
-The frontend’s automatic reload behavior for `401` responses was identified as imperfect but intentionally deferred. Backend correctness is the current priority.
-
----
-
-## 8. Centralized Error Handling
-
-Issue #16 was completed, merged, pulled, and the feature branch was deleted.
-
-### Custom error hierarchy
+Custom error hierarchy:
 
 ```text
 AppError
-├── BadRequestError      400
-├── UnauthorizedError    401
-├── NotFoundError        404
-└── ConflictError        409
+├── BadRequestError       400
+├── ValidationError       400
+├── UnauthorizedError     401
+├── NotFoundError         404
+└── ConflictError         409
 ```
 
-`AppError` extends the native `Error` class and contains:
-
-```text
-message
-name
-statusCode
-stack
-```
-
-Unexpected native `Error` instances become generic `500` responses.
-
-### Error middleware behavior
-
-Expected application error:
-
-```json
-{
-  "message": "Program not found"
-}
-```
-
-Unexpected error:
+Expected errors preserve their status and message. Validation errors also include structured field errors. Unexpected errors are logged once through `req.log.error({ err }, ...)` and return:
 
 ```json
 {
@@ -391,1080 +311,294 @@ Unexpected error:
 }
 ```
 
-Unexpected errors should eventually be logged once inside the centralized error middleware. Expected `4xx` errors should not generate noisy error logs.
+Chosen semantics:
 
-### Controller pattern
+- `400`: malformed or invalid input.
+- `401`: missing or invalid authentication credentials.
+- `403`: valid identity that lacks permission; not currently common because ownership failures deliberately return `404`.
+- `404`: missing or inaccessible resource without revealing another user's resource.
+- `409`: uniqueness conflict such as an existing email or program name.
+- Empty child collections return `200` with an empty array when the parent exists.
 
-Expected error:
+## 11. Request Logging and Observability
 
-```text
-return next(new NotFoundError("Program not found"))
-```
+Pino request logging is complete.
 
-Unexpected error:
+For each request, `pino-http`:
 
-```text
-catch (err) {
-  return next(err)
-}
-```
+- Generates a UUID request ID.
+- returns it in the `X-Request-Id` response header.
+- Attaches a request-scoped logger to `req.log`.
+- Logs request completion, status, and response time.
+- Uses `info` for successful responses, `warn` for `4xx`, and `error` for `5xx` or request errors.
 
-Successful responses remain inside controllers.
+Logger behavior:
 
----
+- Development uses readable `pino-pretty` output and debug level.
+- Tests silence logs.
+- Other environments emit structured JSON at info level.
+- Authorization, cookies, and set-cookie headers are redacted.
+- Unexpected errors are logged in centralized error middleware with the request ID.
 
-## 9. Error Semantics Chosen
+Never log access tokens, passwords, password hashes, secrets, or raw authentication headers.
 
-### `400 Bad Request`
+## 12. Database and Program Creation
 
-Use for malformed or invalid request data.
-
-Examples:
-
-- Missing required fields.
-- Incorrect field types.
-- Invalid numeric ranges.
-- Invalid nested payload structure.
-
-### `401 Unauthorized`
-
-Use for:
-
-- Invalid login credentials.
-- Missing JWT.
-- Invalid JWT.
-- Expired JWT.
-
-Unknown email and incorrect password both return:
-
-```text
-401
-"Invalid email or password"
-```
-
-This avoids revealing whether an account exists.
-
-### `404 Not Found`
-
-Use when a specific resource does not exist or is inaccessible to the authenticated user.
-
-Examples:
-
-```text
-Program not found
-Workout not found
-User not found
-```
-
-Ownership failures use the same generic response as nonexistent resources.
-
-### `409 Conflict`
-
-Use for unique constraint conflicts.
-
-Examples:
-
-```text
-Email already in use
-Program name already in use
-```
-
-PostgreSQL error code `23505` is translated into `ConflictError`.
-
-### Empty collections
-
-An existing resource with no child resources returns `200`, not `404`.
-
-Examples:
-
-```json
-{
-  "message": "No workouts found for this program",
-  "data": []
-}
-```
-
-```json
-{
-  "message": "No exercises found for this workout",
-  "data": []
-}
-```
-
-A nonexistent parent resource returns `404`.
-
----
-
-## 10. User Controller Status
-
-The user controller has been refactored and tested.
-
-### `loginUser`
-
-Behavior:
-
-```text
-Valid credentials
-→ 200
-→ token and user data
-
-Unknown email
-→ 401
-→ "Invalid email or password"
-
-Incorrect password
-→ 401
-→ "Invalid email or password"
-
-Unexpected error
-→ centralized 500
-```
-
-### `signupUser`
-
-Behavior:
-
-```text
-Valid signup
-→ 201
-→ token and created user data
-
-Duplicate email
-→ PostgreSQL 23505
-→ ConflictError
-→ 409
-→ "Email already in use"
-
-Unexpected error
-→ centralized 500
-```
-
-### `getMe`
-
-Behavior:
-
-```text
-Valid JWT + existing user
-→ 200
-→ user data
-
-Valid JWT + nonexistent user_id
-→ 404
-→ "User not found"
-
-Invalid JWT
-→ authentication middleware
-→ 401
-```
-
----
-
-## 11. Program Controller Status
-
-The program controller has been refactored and integration-tested.
-
-### `retrievePrograms`
-
-Behavior:
-
-```text
-Authenticated user with programs
-→ 200
-→ data array
-
-Authenticated user with no programs
-→ 200
-→ data: []
-```
-
-### `makeProgram`
-
-Uses a PostgreSQL transaction:
+Program creation uses a PostgreSQL transaction:
 
 ```text
 BEGIN
 → create program
-→ compile workouts
-→ create program-workout relationships
+→ create workout shells
+→ find or create exercises
+→ link exercises to workouts
+→ link workouts to program
 → COMMIT
 ```
 
-On failure:
+On failure, the controller rolls back and releases the transaction client.
+
+Ownership helpers include:
+
+- `programExistsForUser(programId, userId)`
+- `workoutExistsForProgram(workoutId, programId)`
+
+Database queries are typed, but database constraints and nullability need a dedicated future review. Do not casually change schema behavior during unrelated issues.
+
+## 13. Testing
+
+Most backend tests are route-level integration tests:
 
 ```text
-ROLLBACK
-→ release client
-```
-
-Behavior:
-
-```text
-Valid program creation
-→ 201
-→ "Program creation successful"
-
-Duplicate program name
-→ PostgreSQL 23505
-→ ConflictError
-→ 409
-→ "Program name already in use"
-
-Unexpected error
-→ centralized 500
-```
-
-### `removeProgram`
-
-Behavior:
-
-```text
-Existing owned program
-→ 200
-→ "Program deleted"
-
-Missing or unowned program
-→ 404
-→ "Program not found"
-```
-
-### `removeWorkout`
-
-Removes a workout-program relationship.
-
-Behavior:
-
-```text
-Existing relationship
-→ 200
-→ "Workout deleted from program"
-
-Missing relationship
-→ 404
-→ "Workout not found in program"
-```
-
-### `getWorkouts`
-
-The controller first verifies ownership using:
-
-```text
-programExistsForUser(program_id, user_id)
-```
-
-Behavior:
-
-```text
-Program missing or not owned by user
-→ 404
-→ "Program not found"
-
-Program exists with workouts
-→ 200
-→ populated data array
-
-Program exists with no workouts
-→ 200
-→ data: []
-```
-
-### `getExercises`
-
-The controller verifies:
-
-```text
-programExistsForUser(program_id, user_id)
-workoutExistsForProgram(workout_id, program_id)
-```
-
-Behavior:
-
-```text
-Program missing or unowned
-→ 404
-→ "Program not found"
-
-Workout not linked to program
-→ 404
-→ "Workout not found"
-
-Workout exists with exercises
-→ 200
-→ populated data array
-
-Workout exists with no exercises
-→ 200
-→ data: []
-```
-
----
-
-## 12. Workout Controller Status
-
-`workoutController.js` currently acts as an internal helper for `makeProgram`.
-
-It handles:
-
-```text
-compileWorkout
-→ create workout shell
-→ find or create exercises
-→ link exercises to workout
-→ return workout IDs
-```
-
-Important helper functions:
-
-```text
-createExercise
-createWorkoutShell
-linkWorkoutExercises
-compileWorkout
-```
-
-Direct helper tests were intentionally deferred because the `makeProgram` integration tests already exercise this flow.
-
-An additional integration test was added or planned for a completely new exercise name to cover:
-
-```text
-Exercise does not exist
-→ create custom user exercise
-→ link it to workout
-```
-
-Many helper-level `try/catch` blocks only log and rethrow. These should eventually be cleaned up in a separate refactoring issue rather than expanding the request-validation issue.
-
----
-
-## 13. Database Helper Functions Added
-
-### `programExistsForUser`
-
-Purpose:
-
-```text
-Does this program belong to this authenticated user?
-```
-
-Suggested SQL shape:
-
-```sql
-SELECT 1
-FROM programs
-WHERE program_id = $1
-  AND user_id = $2;
-```
-
-Return:
-
-```text
-boolean
-```
-
-### `workoutExistsForProgram`
-
-Purpose:
-
-```text
-Is this workout linked to this program?
-```
-
-Suggested SQL shape:
-
-```sql
-SELECT 1
-FROM program_workouts
-WHERE workout_id = $1
-  AND program_id = $2;
-```
-
-Return:
-
-```text
-res.rowCount > 0
-```
-
----
-
-## 14. Testing Architecture
-
-### Test style
-
-Most tests are route-level integration tests using Supertest:
-
-```text
-HTTP request
-→ router
-→ middleware
+Supertest request
+→ Express middleware
 → controller
-→ database
-→ centralized error handler
-→ HTTP response
+→ PostgreSQL test database
+→ error middleware
+→ asserted HTTP response
 ```
 
-### Test database
-
-Tests use a separate PostgreSQL database configured through `.env.test`.
-
-The test database may be safely truncated and reseeded.
-
-### Test setup helper
-
-`setupTestData()`:
-
-- Truncates relevant tables.
-- Resets identities.
-- Seeds a user.
-- Seeds a program.
-- Seeds workouts.
-- Seeds exercises.
-- Seeds program-workout relationships.
-- Seeds completed workout data.
-- Uses a transaction.
-- Rolls back on failure.
-- Rethrows setup errors so Jest reports them.
-- Does not run automatically when imported.
-
-Test files call:
+Current test files:
 
 ```text
-beforeAll(async () => {
-  await setupTestData()
-})
+tests/auth.test.ts
+tests/loginRoutes.test.ts
+tests/signupRoutes.test.ts
+tests/programRoutes.test.ts
+tests/programValidation.test.ts
+tests/requestLogging.test.ts
+tests/testHelper.ts
 ```
 
-### Database cleanup
+`setupTestData()` resets and seeds a separate PostgreSQL test database. `endTesting()` closes database resources after a suite.
 
-Jest previously warned about open handles because the PostgreSQL pool stayed open.
+Current coverage includes:
 
-Test files now close the pool:
+- Signup and login success/failure.
+- User retrieval.
+- Missing and malformed authentication.
+- Program creation, duplicate names, retrieval, and deletion.
+- Workout-program removal.
+- Program/workout/exercise ownership and missing-resource behavior.
+- Nested program validation and defaults.
+- Request ID and logging behavior.
+
+## 14. Continuous Integration
+
+`.github/workflows/ci.yml` runs on:
+
+- Pull requests targeting `main`.
+- Pushes to `main`.
+- Manual dispatch.
+
+Backend job:
 
 ```text
-afterAll(async () => {
-  await pool.end()
-})
+checkout
+→ Node 24
+→ npm ci
+→ PostgreSQL 14 service
+→ initialize db/init.sql with ON_ERROR_STOP
+→ npm run verify
 ```
 
-### Test file organization
-
-Current or intended files:
+Frontend job:
 
 ```text
-tests/userRoutes.test.js
-tests/programRoutes.test.js
-tests/errorMiddleware.test.js
+checkout
+→ Node 24
+→ npm ci
+→ npm run lint
+→ npm run build
 ```
 
-The original `errorMiddleware.test.js` may still contain user integration tests. Renaming can happen later without blocking development.
+Actions are pinned to full commit SHAs. The workflow uses least-privilege `contents: read` permission. Backend and frontend are independent jobs and required checks on `main`.
 
-### Coverage completed
+## 15. Commands
 
-#### Authentication and users
-
-- Successful login.
-- Unknown email.
-- Wrong password.
-- Successful signup.
-- Duplicate email.
-- Successful `getMe`.
-- Valid token with nonexistent user.
-- Missing token.
-- Invalid token.
-
-#### Programs
-
-- Retrieve programs.
-- Create program.
-- Duplicate program name.
-- Remove program.
-- Program not found.
-- Remove workout from program.
-- Missing workout-program relationship.
-- Retrieve workouts.
-- Empty workout collection.
-- Missing or unowned program.
-- Retrieve exercises.
-- Empty exercise collection.
-- Program not owned by user.
-- Workout not linked to program.
-
----
-
-## 15. Request Validation — Current Issue
-
-### Current branch
+Run backend commands from `backend/`:
 
 ```text
-feat/17-request-validation
+npm run dev             Run the development server with tsx watch
+npm run typecheck       Typecheck production source without emitting
+npm run typecheck:test  Typecheck tests without emitting
+npm test                Run Jest/Supertest integration tests
+npm run build           Compile production source to dist
+npm run verify          Run both typechecks, tests, and production build
+npm start               Run dist/server.js in production mode
 ```
 
-The branch should be pushed before switching machines:
-
-```bash
-git status
-git add .
-git commit -m "chore: add Zod validation dependency"
-git push -u origin feat/17-request-validation
-```
-
-On another machine:
-
-```bash
-git fetch origin
-git switch feat/17-request-validation
-cd backend
-npm install
-```
-
-### Acceptance criteria
-
-- Choose validation library: Zod, Joi, or express-validator.
-- Add validation middleware pattern.
-- Validate signup request body.
-- Validate login request body.
-- Validate workout/program creation inputs.
-- Return consistent validation error responses.
-- Add tests for invalid request bodies.
-- Document validation approach.
-
-### Validation library decision
-
-**Zod was selected.**
-
-Reasons:
-
-- Strong support for nested objects and arrays.
-- Reusable schemas.
-- Clean separation from Express.
-- Good fit for program → workouts → exercises payloads.
-- Strong future TypeScript compatibility.
-- Runtime validation remains necessary even after TypeScript migration.
-
-Install from the backend directory:
-
-```bash
-npm install zod
-```
-
-Zod must be a normal production dependency because validation runs in the production server.
-
----
-
-## 16. Validation Architecture Decision
-
-The intended validation flow is:
+Run frontend commands from `client/`:
 
 ```text
-Request
-→ route-specific Zod schema
-→ reusable validation middleware
-→ controller
-→ database
+npm run dev
+npm run lint
+npm run build
 ```
 
-Validation middleware should:
+TypeScript produces no output when `tsc --noEmit` succeeds. A zero exit code confirms success.
 
-1. Receive a Zod schema.
-2. Validate `req.body`, and later possibly `req.params` or `req.query`.
-3. Pass validated data onward.
-4. Convert validation failures into a consistent `400` response.
-5. Use the centralized error-handler pipeline.
+## 16. Authentication Baseline
 
-Conceptually:
+Before the current issue, login and signup signed a JWT containing a private numeric `user_id` claim. Protected middleware read `Authorization: Bearer <token>`, verified the token, and attached the numeric ID to `req.user_id`.
+
+The frontend stores the access token in `localStorage` and removes it from local storage and React state during logout.
+
+Known security limitations:
+
+- `localStorage` tokens can be stolen by JavaScript executing through XSS or a compromised dependency.
+- Client-side logout discards only that client's copy; it does not revoke another copy of a stateless JWT.
+- There is no refresh-token flow, token rotation, denylist, or server-side session store.
+- Refresh tokens and true server-side revocation are deliberately outside the current issue.
+
+## 17. Current Work: Standardize JWT Access Tokens
+
+The active engineering task is to standardize access-token issuance, verification, errors, tests, and documentation.
+
+### Intended token contract
+
+The access token should contain:
 
 ```text
-Invalid request
-→ Zod validation fails
-→ BadRequestError or validation-specific AppError
-→ centralized error middleware
-→ consistent 400 JSON response
+sub        User ID encoded as a positive-integer string
+token_use  Literal "access"
+iss        Configured issuer
+aud        Configured API audience
+iat        Integer issued-at timestamp
+exp        Integer expiration timestamp
 ```
 
-Controllers should not repeat basic checks already guaranteed by schemas.
+Security policy:
 
-### Validation versus business logic
+- Sign and verify only with `HS256`.
+- The server—not the incoming JWT header—chooses allowed algorithms.
+- Verify signature, expiration, issuer, and audience before trusting claims.
+- Validate verified claims with Zod.
+- Convert `sub` to a positive safe integer before assigning `req.user_id`.
+- Use the token module as the single owner of JWT signing and verification.
 
-Validation answers:
+### Intended ownership
+
+- `backend/auth/accessToken.ts`: token contract, issuance, and verification.
+- `userController.ts`: verify credentials or create the user, then request a token.
+- `authMiddleware.ts`: strictly parse the Bearer header, verify the token, attach `req.user_id`, and translate failures into `401` responses.
+- Frontend: discard its token and authentication state on logout or unauthorized responses.
+
+### Current work-in-progress state
+
+The following uncommitted implementation work exists:
+
+- `config.auth` now includes issuer and audience.
+- `backend/auth/accessToken.ts` exists with a Zod claim schema and initial issue/verify functions.
+- Login and signup call `issueAccessToken()`.
+- Authentication middleware calls `verifyAccessToken()`.
+
+The implementation is not complete yet. Required fixes identified during review:
+
+1. Validate issued user IDs with `Number.isSafeInteger(userId)` and `userId > 0`.
+2. Throw on invalid issuance input rather than returning an empty token.
+3. Type verification options and use `algorithms: ["HS256"]`; the singular signing property `algorithm` is not the verification allowlist.
+4. Use the shared secret constant consistently.
+5. Optionally make the claim schema strict.
+6. Strictly parse the complete Bearer header instead of accepting prefixes or extra segments.
+7. Assign the verified ID to `req.user_id` before calling `next()`.
+8. Distinguish missing, expired, and otherwise invalid access-token responses.
+9. Add focused token tests and route-level authentication tests.
+10. Update architecture documentation and environment examples.
+11. Add issuer and audience to the GitHub Actions backend environment before CI runs.
+
+Recommended public authentication errors:
 
 ```text
-Is the input correctly shaped?
+Missing credential  → 401 "Access token required"
+Expired token       → 401 "Access token expired"
+Other invalid token → 401 "Invalid access token"
 ```
 
-Examples:
+Do not log the raw token or expose internal JWT/Zod error details to clients.
 
-- Is `email` a valid email string?
-- Is `password` long enough?
-- Is `workouts` an array?
-- Is `target_sets` a positive integer?
+### Test matrix still required
 
-Business logic answers:
+- Login and signup return tokens with the standardized claims.
+- Valid access token reaches a protected route.
+- Missing authorization header.
+- Wrong authorization scheme.
+- `Bearer` without a credential.
+- Extra header segments.
+- Malformed token.
+- Wrong signing secret.
+- Expired token.
+- Wrong issuer.
+- Wrong audience.
+- Missing, malformed, zero, negative, decimal, or unsafe `sub`.
+- Wrong `token_use`.
+
+## 18. Immediate Workflow Warning
+
+At the time of this update, the local branch is still:
 
 ```text
-Is this operation allowed in the current application state?
+feat/28-github-actions
 ```
 
-Examples:
-
-- Is the email already registered?
-- Does the program belong to the user?
-- Is the workout linked to this program?
-
-Validation must not replace ownership or database checks.
-
----
-
-## 17. Initial Schemas to Build
-
-### Signup schema
-
-Expected fields:
-
-```text
-f_name
-l_name
-email
-password
-```
-
-Likely rules:
-
-```text
-f_name
-- required
-- string
-- trimmed
-- non-empty
-- sensible maximum length
-
-l_name
-- required
-- string
-- trimmed
-- non-empty
-- sensible maximum length
-
-email
-- required
-- string
-- valid email
-- normalized if appropriate
-
-password
-- required
-- string
-- minimum length
-- sensible maximum length
-```
-
-### Login schema
-
-Expected fields:
-
-```text
-email
-password
-```
-
-Likely rules:
-
-```text
-email
-- required
-- valid email
-
-password
-- required
-- non-empty string
-```
-
-The login schema should not necessarily enforce every signup password-strength rule because existing accounts may have been created under older rules.
-
-### Program creation schema
-
-Expected shape:
-
-```text
-name
-description
-workouts[]
-```
-
-Each workout contains:
-
-```text
-name
-notes
-exercises[]
-```
-
-Each exercise contains values such as:
-
-```text
-name
-target_sets
-target_reps
-target_rest
-target_weight
-target_duration
-distance
-notes
-time_flag
-```
-
-The schema should be composed:
-
-```text
-exerciseSchema
-→ workoutSchema
-→ programSchema
-```
-
-Likely rules include:
-
-```text
-Program name
-- required
-- non-empty string
-
-Description
-- optional or nullable string
-
-Workouts
-- array
-- may be empty if empty programs are supported
-
-Workout name
-- required string
-
-Exercises
-- array
-- may be empty if empty workouts are supported
-
-Target sets/reps/rest
-- numeric
-- nonnegative or positive depending on semantics
-```
-
----
-
-## 18. Exact Next Steps
-
-### Immediate next step
-
-Confirm Zod is installed:
-
-```bash
-cd backend
-npm install zod
-```
-
-Verify that `zod` appears under `dependencies` in:
-
-```text
-backend/package.json
-```
-
-Commit and push the dependency update before moving to another computer.
-
-### After installation
-
-Create a validation/schema directory. A likely structure is:
-
-```text
-backend/
-├── validation/
-│   ├── userSchemas.js
-│   └── programSchemas.js
-├── middleware/
-│   └── validateRequest.js
-```
-
-Alternative naming is acceptable, but schemas and middleware should remain separate.
-
-### First implementation target
-
-Build the signup schema first.
-
-Work through one field at a time:
-
-1. `f_name`
-2. `l_name`
-3. `email`
-4. `password`
-
-Do not build login and program schemas simultaneously.
-
-### Then build reusable middleware
-
-The middleware should receive a schema and validate the request body.
-
-Design questions to resolve:
-
-- Use `safeParse()` or `parse()`.
-- Whether validated/transformed data replaces `req.body`.
-- Exact error response shape.
-- Whether validation gets its own error class or uses `BadRequestError`.
-
-Recommended response shape should be consistent and useful, for example:
-
-```json
-{
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "email",
-      "message": "Invalid email address"
-    }
-  ]
-}
-```
-
-Do not expose raw implementation details unnecessarily.
-
-### Apply signup validation
-
-The signup route should become conceptually:
-
-```text
-POST /api/user/signup
-→ validate signup body
-→ signupUser
-```
-
-### Add tests
-
-Initial invalid signup tests:
-
-```text
-missing first name → 400
-missing last name → 400
-missing email → 400
-invalid email → 400
-missing password → 400
-short password → 400
-valid body → 201
-```
-
-Also verify that rejected requests do not create database rows.
-
-### Continue with login validation
-
-Test:
-
-```text
-missing email → 400
-invalid email → 400
-missing password → 400
-valid but incorrect credentials → 401
-valid credentials → 200
-```
-
-This preserves the difference between malformed input and failed authentication.
-
-### Continue with nested program validation
-
-Test:
-
-```text
-missing program name → 400
-workouts not an array → 400
-workout missing name → 400
-exercises not an array → 400
-exercise missing name → 400
-negative sets/reps/rest → 400
-valid empty program → 201 if supported
-valid nested program → 201
-```
-
-### Documentation
-
-Update `docs/architecture.md` with:
-
-```text
-Request
-→ authentication middleware
-→ Zod validation middleware
-→ controller
-→ database
-```
-
-Add a section explaining:
-
-- why backend validation is required;
-- schema composition;
-- consistent validation responses;
-- separation between validation and business logic.
-
-Update the README technical features with:
-
-```text
-Zod request validation
-Reusable validation middleware
-Nested program and workout validation
-Jest and Supertest validation tests
-```
-
----
-
-## 19. TypeScript Migration — Completed
-
-The backend TypeScript migration was completed incrementally after request validation. Existing API behavior, status codes, messages, and response shapes were preserved throughout the migration.
-
-### Current TypeScript setup
-
-- Production source and integration tests are written in TypeScript.
-- `tsconfig.json` uses strict checking and compiles production source to `dist/`.
-- `tests/tsconfig.json` adds Jest types and checks tests without emitting files.
-- `tsx watch` runs the development server directly from `server.ts`.
-- Babel transforms TypeScript test syntax before Jest executes tests.
-- `npm run verify` runs production typechecking, test typechecking, integration tests, and the production build.
-- Production runs compiled `dist/server.js` files.
-- Production environment variables are supplied externally; `.env` files are not copied into `dist/`.
-
-### Migration approach
-
-- Allow `.js` and `.ts` files to coexist.
-- Preserve current API behavior.
-- Preserve CommonJS initially.
-- Do not combine TypeScript migration with an ES module migration.
-- Convert incrementally.
-
-### Completed migration order
-
-```text
-1. TypeScript tooling and tsconfig
-2. Custom error classes
-3. Zod schemas
-4. Validation middleware
-5. Configuration
-6. Authentication middleware
-7. app.ts and server.ts
-8. Controllers
-9. Database query functions
-10. Test helpers and tests
-```
-
-### Completed migration scope
-
-Includes:
-
-- Backend source files.
-- Express request typing.
-- Authenticated request type containing `user_id`.
-- Database row and query return types.
-- Zod-inferred request types.
-- Build, development, and testing scripts.
-- Documentation.
-
-Important type boundaries now include:
-
-- Zod-inferred validated request bodies.
-- An augmented Express request containing optional `user_id`.
-- Explicit route-parameter types and runtime numeric conversion.
-- PostgreSQL row interfaces, nullable fields, query parameters, return values, and transaction clients.
-- `unknown` error handling with narrowing before PostgreSQL-specific properties are read.
-
-Excludes:
-
-- Frontend migration.
-- ES module conversion.
-- API redesign.
-- Database schema redesign.
-- Unrelated feature development.
-
----
-
-## 20. Important Deferred Work
-
-The following items were deliberately deferred to avoid scope creep:
-
-### Frontend unauthorized handling
-
-The API service currently reloads on all `401` responses, which incorrectly treats failed login the same as an expired authenticated session.
-
-Future fix:
-
-```text
-Failed login 401
-→ display error
-→ do not reload
-
-Protected request 401
-→ clear auth state
-→ navigate to login
-```
-
-React routing decisions should remain in the React/auth layer, not the plain API service.
-
-### Database/helper cleanup
-
-Create a future issue to:
-
-- remove redundant `try/catch` blocks that only log and rethrow;
-- preserve transaction rollback logic;
-- centralize unexpected error logging;
-- avoid duplicate error logs.
-
-### Logging
-
-A future Sprint 2 issue will add request and error logging.
-
-Likely goals:
-
-- replace scattered `console.log` and `console.error`;
-- add structured logging;
-- log unexpected `500` errors once;
-- include request context safely;
-- avoid logging passwords, tokens, or secrets.
-
-### TypeScript tooling cleanup
-
-The migration is complete. A future tooling-only cleanup may disable `allowJs` after confirming that no compatibility files require it and may evaluate an ES module migration as a separate change.
-
----
-
-## 21. Current Status Summary
-
-### Completed
-
-- Project documentation and workflow setup.
-- Configuration management.
-- Immutable centralized configuration.
-- Environment validation.
-- Separate development and test databases.
-- `app.js` / `server.js` separation.
-- Custom application error classes.
-- Centralized Express error middleware.
-- Authentication error integration.
-- User controller error refactor.
-- Program controller error refactor.
-- Ownership-aware program and workout checks.
-- Jest and Supertest integration tests.
-- Test database seeding and pool cleanup.
-- Architecture and README updates.
-- Issue #16 merged and branch deleted.
-- TypeScript migration issue created.
-- Request-validation branch created.
-- Zod selected as the validation library.
-- Zod validation schemas and reusable validation middleware completed.
-- Backend production source migrated to strict TypeScript.
-- Express requests, authentication state, and route parameters typed.
-- Database query inputs, result rows, return values, and transaction clients typed.
-- Integration tests and test helpers migrated to TypeScript.
-- Development, typechecking, testing, build, and production scripts support TypeScript.
-- TypeScript setup documented in the README and architecture guide.
-
-### In progress
-
-```text
-TypeScript migration documentation and final verification
-Branch: feat/22-typescript-migration
-```
-
-### Immediate action
-
-```text
-Run npm run verify
-Review the migration against its acceptance criteria
-Commit documentation
-Open or update the pull request
-```
+and JWT work is uncommitted. Before committing JWT changes, confirm issue #28 is merged, update local `main`, and move the JWT changes onto the correct issue branch. Do not accidentally commit the new authentication work to the completed CI branch.
+
+Also preserve unrelated user changes in `docs/roadmap.md` and `middleware/validateRequest.ts`; do not overwrite or revert them without inspection.
+
+## 19. Roadmap
+
+Current sequence:
+
+1. Structured request logging — completed.
+2. GitHub Actions CI and branch protection — completed remotely; synchronize local branches as needed.
+3. Standardize JWT access-token authentication — in progress.
+4. Introduce versioned database migrations.
+5. Implement workout-session API.
+6. Build active workout-tracking interface.
+7. Add workout history and previous performance.
+8. Dockerize the application.
+9. Deploy an AWS staging environment.
+10. Add continuous deployment.
+11. Complete portfolio-quality security, API documentation, end-to-end testing, and presentation.
+
+Deliberately deferred until justified:
+
+- Refresh tokens and server-side token revocation.
+- AI-generated workout programming.
+- Redis caching.
+- Microservices and Kubernetes.
+- Advanced analytics and background messaging infrastructure.
+
+## 20. Definition of Done for Meaningful Changes
+
+Before merging an issue:
+
+1. Acceptance criteria are satisfied.
+2. The narrowest relevant checks pass during implementation.
+3. `npm run verify` passes for backend changes.
+4. Frontend lint and build pass for frontend changes.
+5. Failure cases and security implications are reviewed.
+6. The final diff contains no accidental or unrelated changes.
+7. README, architecture, roadmap, environment examples, and this context are updated where relevant.
+8. The pull request clearly describes the change and verification performed.
+9. Required GitHub checks pass before merge.

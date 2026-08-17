@@ -19,6 +19,8 @@ type AppConfig = {
   readonly auth: {
     readonly jwtSecret: string;
     readonly jwtExpiresIn: JwtExpiration;
+    readonly jwtIssuer: string;
+    readonly jwtAudience: string;
   };
   readonly client: {
     readonly url: string;
@@ -88,6 +90,8 @@ const config: AppConfig = {
   auth: {
     jwtSecret: getRequiredEnv("JWT_SECRET"),
     jwtExpiresIn: validateJwtExp(process.env.JWT_EXPIRES_IN),
+    jwtIssuer: getRequiredEnv("JWT_ISSUER"),
+    jwtAudience: getRequiredEnv("JWT_AUDIENCE"),
   },
   client: {
     url: process.env.CLIENT_URL || "http://localhost:5173",

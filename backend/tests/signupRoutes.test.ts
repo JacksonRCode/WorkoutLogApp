@@ -1,6 +1,7 @@
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { app } from "../app";
+import { issueAccessToken } from "../auth/accessToken";
 import { config } from "../config";
 import { setupTestData, endTesting } from "./testHelper";
 
@@ -75,9 +76,7 @@ it("returns 200 when a user is successfully retrieved", async () => {
 });
 
 it("returns 404 if user_id not found", async () => {
-  const token = jwt.sign({ user_id: 999 }, config.auth.jwtSecret, {
-    expiresIn: config.auth.jwtExpiresIn,
-  });
+  const token = issueAccessToken(999);
   const response = await request(app)
     .get("/api/user/me")
     .set("Authorization", `Bearer ${token}`);

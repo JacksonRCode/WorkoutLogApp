@@ -156,22 +156,16 @@ Workouts
 ## Authentication Flow
 
 ```text
-User submits login credentials
-  |
-  v
-Backend validates credentials
-  |
-  v
-Backend signs JWT with 24h expiration
-  |
-  v
-Frontend stores token
-  |
-  v
-Frontend sends token in Authorization header
-  |
-  v
-Protected backend routes validate token
+--> Validate credentials
+--> Issue standardized access token
+--> Frontend stores token
+--> Send Authorization: Bearer <token>
+--> strictly parse the header
+--> verify jwt
+--> validate with zod schema
+--> convert sub to numeric user id
+--> attach to req.user_id
+--> continue to protected controller
 ```
 
 ---
